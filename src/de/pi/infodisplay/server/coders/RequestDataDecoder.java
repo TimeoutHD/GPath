@@ -12,9 +12,8 @@ public class RequestDataDecoder extends ReplayingDecoder<RequestData> {
 	private final Charset charset = Charset.forName("UTF-8");
 
 	@Override
-	protected void decode(ChannelHandlerContext arg0, ByteBuf arg1, List<Object> arg2) throws Exception {
-		// TODO Auto-generated method stub
-		
+	protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
+		RequestData data = new RequestData();
 	}
 
 }
