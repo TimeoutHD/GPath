@@ -9,6 +9,7 @@ public class ResponseDataEncoder extends MessageToByteEncoder<ResponseData> {
 
 	@Override
 	protected void encode(ChannelHandlerContext ctx, ResponseData msg, ByteBuf out) throws Exception {
+		out.writeInt(msg.getContents().length);
 		for(InfoDisplayPacket p : msg.getContents()) {
 			out.writeInt(p.toString().length());
 			for(char c : p.toString().toCharArray()) {

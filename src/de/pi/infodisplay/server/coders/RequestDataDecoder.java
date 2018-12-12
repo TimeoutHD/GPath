@@ -16,7 +16,8 @@ public class RequestDataDecoder extends ReplayingDecoder<RequestData> {
 		//Packets
 		final List<InfoDisplayPacket> contents = new ArrayList<>();
 		//Anzahl der Packets als ersten int schicken
-		for(int i = 0; i < in.readInt(); i++) {
+		int amount = in.readInt();
+		for(int i = 0; i < amount; i++) {
 			//Dann vor jedem Packet Länge des Strings schicken
 			int strLen = in.readInt();
 			//String lesen
@@ -28,5 +29,4 @@ public class RequestDataDecoder extends ReplayingDecoder<RequestData> {
 		}
 		data.setContents((InfoDisplayPacket[]) contents.toArray());
 	}
-
 }
