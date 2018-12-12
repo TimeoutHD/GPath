@@ -1,13 +1,15 @@
 package de.pi.infodisplay.server.coders;
 
-public class RequestData {
-	private Object[] contents;
+import de.pi.infodisplay.shared.packets.InfoDisplayPacket;
 
-	public Object[] getContents() {
+public class RequestData {
+	private InfoDisplayPacket[] contents;
+
+	public InfoDisplayPacket[] getContents() {
 		return contents;
 	}
 
-	public void setContents(Object[] contents) {
+	public void setContents(InfoDisplayPacket[] contents) {
 		this.contents = contents;
 	}
 }

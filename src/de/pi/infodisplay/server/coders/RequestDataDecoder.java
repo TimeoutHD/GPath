@@ -1,5 +1,20 @@
 package de.pi.infodisplay.server.coders;
 
-public class RequestDataDecoder {
+import java.nio.charset.Charset;
+import java.util.List;
+
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.ReplayingDecoder;
+
+public class RequestDataDecoder extends ReplayingDecoder<RequestData> {
+	
+	private final Charset charset = Charset.forName("UTF-8");
+
+	@Override
+	protected void decode(ChannelHandlerContext arg0, ByteBuf arg1, List<Object> arg2) throws Exception {
+		// TODO Auto-generated method stub
+		
+	}
 
 }
