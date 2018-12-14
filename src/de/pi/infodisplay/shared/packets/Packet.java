@@ -4,7 +4,15 @@ import java.io.IOException;
 
 import io.netty.buffer.ByteBuf;
 
-public interface Packet {
-	public void read(ByteBuf byteBuf) throws IOException;
-	public void write(ByteBuf byteBuf) throws IOException;
+public abstract class Packet {
+	
+	protected int id;
+	
+	public abstract void read(ByteBuf byteBuf) throws IOException;
+	
+	public abstract void write(ByteBuf byteBuf) throws IOException;
+	
+	public int getID() {
+		return id;
+	}
 }
