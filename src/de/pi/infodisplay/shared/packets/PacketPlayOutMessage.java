@@ -10,6 +10,7 @@ public class PacketPlayOutMessage extends Packet {
 
 	public PacketPlayOutMessage() {
 		this.id = 0;
+		this.msg = "";
 	}
 	
 	public PacketPlayOutMessage(String msg) {
@@ -19,7 +20,8 @@ public class PacketPlayOutMessage extends Packet {
 
 	@Override
 	public void read(ByteBuf byteBuf) throws IOException {
-		byte[] bytes = new byte[1000000000];
+		
+		byte[] bytes = new byte[byteBuf.readableBytes()];
 		
 		byteBuf.readBytes(bytes);
 		this.msg = String.valueOf(bytes);
@@ -29,5 +31,4 @@ public class PacketPlayOutMessage extends Packet {
 	public void write(ByteBuf byteBuf) throws IOException {
 		byteBuf.writeBytes(this.msg.getBytes());
 	}
-	
 }
