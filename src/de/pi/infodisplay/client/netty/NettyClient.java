@@ -14,6 +14,8 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import de.pi.infodisplay.client.netty.handlers.PacketHandler;
+
 public class NettyClient {
 	
 	private static final boolean EPOLL = Epoll.isAvailable();
@@ -21,10 +23,13 @@ public class NettyClient {
 	private int port;
 	private String host;
 	private ChannelFuture channel;
+	
+	private PacketHandler handler;
 
 	public NettyClient(String host, int port) {
 		this.port = port;
 		this.host = host;
+		this.handler = new PacketHandler();
 		try (EventLoopGroup group = EPOLL ? new EpollEventLoopGroup() : new NioEventLoopGroup()) {
 			channel = new Bootstrap() 
 				.group(group)
