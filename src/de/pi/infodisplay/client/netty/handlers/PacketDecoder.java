@@ -13,8 +13,7 @@ public class PacketDecoder extends ByteToMessageDecoder {
 	private static final List<Class<? extends Packet>> IN_PACKETS = Arrays.asList();
 
 	@Override
-	protected void decode(ChannelHandlerContext ctx, ByteBuf buf, List<Object> list) throws Exception {
-
+	protected void decode(ChannelHandlerContext arg0, ByteBuf arg1, List<Object> arg2) throws Exception {		
 	}
 
 }
