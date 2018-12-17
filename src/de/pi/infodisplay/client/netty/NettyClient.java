@@ -43,7 +43,7 @@ public class NettyClient {
 				}).connect(host, port).sync().channel().closeFuture().syncUninterruptibly();
 		} catch (Exception e) {
 			Logger.getGlobal().log(Level.SEVERE, "Cannot create Netty Client", e);
-		};
+		}
 	}
 
 	public int getPort() {
@@ -56,5 +56,9 @@ public class NettyClient {
 
 	public ChannelFuture getChannel() {
 		return channel;
+	}
+	
+	public PacketHandler getPacketHandler() {
+		return handler;
 	}
 }
