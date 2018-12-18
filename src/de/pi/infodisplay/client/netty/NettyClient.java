@@ -14,7 +14,7 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import de.pi.infodisplay.client.netty.handlers.PacketHandler;
+import de.pi.infodisplay.shared.handler.PacketHandler;
 
 public class NettyClient {
 	
@@ -37,9 +37,12 @@ public class NettyClient {
 				.handler(new ChannelInitializer<Channel>() {
 
 					@Override
-					protected void initChannel(Channel arg0) throws Exception {
-						
+					protected void initChannel(Channel channel) throws Exception {
+						channel.pipeline()
+							.addLast(handler.getDecoder())
+							.addLast(handler.getEncoder());
 					}
+					
 				}).connect(host, port).sync().channel().closeFuture().syncUninterruptibly();
 		} catch (Exception e) {
 			Logger.getGlobal().log(Level.SEVERE, "Cannot create Netty Client", e);

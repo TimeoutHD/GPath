@@ -1,6 +1,7 @@
-package de.pi.infodisplay.client.netty.handlers;
+package de.pi.infodisplay.shared.handler;
 
 import de.pi.infodisplay.shared.packets.Packet;
+import de.pi.infodisplay.shared.packets.PacketClientOutInfo;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
@@ -8,10 +9,10 @@ import io.netty.handler.codec.MessageToByteEncoder;
 public class PacketEncoder extends MessageToByteEncoder<Packet> {
 
 	@Override
-	protected void encode(ChannelHandlerContext ctx, Packet packet, ByteBuf buf) throws Exception {
+	protected void encode(ChannelHandlerContext ctx, Packet packet, ByteBuf output) throws Exception {
 		Class<? extends Packet> packetClass = getPacketTypeByID(packet.getID());
 		if(packetClass != null) {
-			
+			packet.write(output);
 		} else throw new IllegalArgumentException("Packet-ID is not in Use");
 	}
 
@@ -23,10 +24,8 @@ public class PacketEncoder extends MessageToByteEncoder<Packet> {
 	 */
 	private Class<? extends Packet> getPacketTypeByID(int id) {
 		switch(id) {
-		case 0:
-			return Packet.class;
-		default:
-			return null;
+		case 0: return PacketClientOutInfo.class;
+		default: return null;
 		}
 	}
 }

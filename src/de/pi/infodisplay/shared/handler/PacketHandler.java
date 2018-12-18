@@ -1,4 +1,4 @@
-package de.pi.infodisplay.client.netty.handlers;
+package de.pi.infodisplay.shared.handler;
 
 public class PacketHandler {
 	
@@ -8,5 +8,13 @@ public class PacketHandler {
 	public PacketHandler() {
 		this.decoder = new PacketDecoder();
 		this.encoder = new PacketEncoder();
+	}
+	
+	public PacketDecoder getDecoder() {
+		return decoder;
+	}
+	
+	public PacketEncoder getEncoder() {
+		return encoder;
 	}
 }
