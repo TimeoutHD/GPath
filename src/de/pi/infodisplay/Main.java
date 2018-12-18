@@ -7,6 +7,8 @@ import de.pi.infodisplay.client.Client;
 import de.pi.infodisplay.server.Server;
 
 public class Main {
+	
+	private static final Logger LOG = Logger.getLogger("InformationDisplay");
 
 	public static void main(String[] args) {
 		if(args.length > 1) {
@@ -14,7 +16,7 @@ public class Main {
 				try {
 					new Server();
 				} catch (Exception e) {
-					Logger.getGlobal().log(Level.SEVERE, "Could not start Server", e);
+					LOG.log(Level.SEVERE, "Could not start Server", e);
 				}
 			} else if("client".equalsIgnoreCase(args[0])) {
 				String host = "127.0.0.1";
@@ -23,8 +25,23 @@ public class Main {
 					if("-h".equalsIgnoreCase(args[i])) host = args[i + 1];
 					else if("-p".equalsIgnoreCase(args[i])) port = args[i + 1];
 				}
-				if(port.matches("[0-9]")) new Client(host, Integer.parseInt(port));
-			}
-		}
+				if(port.matches("\\d+")) {
+					new Client(host, Integer.parseInt(port));
+				}
+			} else sendHelp();
+		} else sendHelp();
+	}
+	
+	private static void sendHelp() {
+		LOG.log(Level.INFO, "Please use the parameter: server / client");
+		LOG.log(Level.INFO, "java -jar ./InformationDisplay.jar server");
+		LOG.log(Level.INFO, "java -jar ./InformationDisplay.jar client");
+		LOG.log(Level.INFO, "");
+		LOG.log(Level.INFO, "param -p <Port>: Set the port of the Server");
+		LOG.log(Level.INFO, "-h <Hostname>: Set the host of the Server");
+	}
+	
+	public static Logger getConsole() {
+		return LOG;
 	}
 }

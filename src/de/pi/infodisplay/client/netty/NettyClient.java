@@ -2,18 +2,19 @@ package de.pi.infodisplay.client.netty;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ConnectTimeoutException;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.epoll.Epoll;
 import io.netty.channel.epoll.EpollEventLoopGroup;
-import io.netty.channel.epoll.EpollServerSocketChannel;
+import io.netty.channel.epoll.EpollSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.channel.socket.nio.NioSocketChannel;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import de.pi.infodisplay.Main;
 import de.pi.infodisplay.shared.handler.PacketHandler;
 
 public class NettyClient {
@@ -22,7 +23,7 @@ public class NettyClient {
 	
 	private int port;
 	private String host;
-	private ChannelFuture channel;
+	private Channel channel;
 	
 	private PacketHandler handler;
 
@@ -30,22 +31,22 @@ public class NettyClient {
 		this.port = port;
 		this.host = host;
 		this.handler = new PacketHandler();
-		try (EventLoopGroup group = EPOLL ? new EpollEventLoopGroup() : new NioEventLoopGroup()) {
+		try(EventLoopGroup group = EPOLL ? new EpollEventLoopGroup() : new NioEventLoopGroup()) {
 			channel = new Bootstrap() 
-				.group(group)
-				.channel(EPOLL ? EpollServerSocketChannel.class : NioServerSocketChannel.class)
-				.handler(new ChannelInitializer<Channel>() {
+					.group(group)
+					.channel(EPOLL ? EpollSocketChannel.class : NioSocketChannel.class)
+					.handler(new ChannelInitializer<Channel>() {
 
-					@Override
-					protected void initChannel(Channel channel) throws Exception {
-						channel.pipeline()
-							.addLast(handler.getDecoder())
-							.addLast(handler.getEncoder());
-					}
-					
-				}).connect(host, port).sync().channel().closeFuture().syncUninterruptibly();
+						@Override
+						protected void initChannel(Channel channel) throws Exception {
+							channel.pipeline()
+								.addLast(handler.getDecoder())
+								.addLast(handler.getEncoder());
+						}
+						
+			}).connect(host, port).sync().channel();
 		} catch (Exception e) {
-			Logger.getGlobal().log(Level.SEVERE, "Cannot create Netty Client", e);
+			Main.getConsole().log(Level.SEVERE, "Failed to connect", e);
 		}
 	}
 
@@ -57,7 +58,7 @@ public class NettyClient {
 		return host;
 	}
 
-	public ChannelFuture getChannel() {
+	public Channel getChannel() {
 		return channel;
 	}
 	

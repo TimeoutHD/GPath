@@ -12,6 +12,10 @@ public class PacketClientInInfo extends Packet {
 		super(0);
 		this.message = message;
 	}
+	
+	public String getMessage() {
+		return message;
+	}
 
 	@Override
 	public void read(ByteBuf byteBuf) throws IOException {
