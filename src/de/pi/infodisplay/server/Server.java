@@ -1,11 +1,12 @@
 package de.pi.infodisplay.server;
 
+import de.pi.infodisplay.shared.handler.PacketHandler;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.channel.epoll.Epoll;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -14,43 +15,44 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 public class Server {
 
-	public static final boolean EPOLL = false;
+	public static final boolean EPOLL = Epoll.isAvailable();
+	
+	private int port;
+	private ChannelFuture channel;
+	
+	private PacketHandler handler;
 
-	public Server() throws Exception {
+	public Server(int port) throws Exception {
+		this.port = port;
+		this.handler = new PacketHandler();
 		
-		EventLoopGroup eventLoopGroup = EPOLL ? new EpollEventLoopGroup() : new NioEventLoopGroup();
-		try{
-			new ServerBootstrap()
+		try (EventLoopGroup eventLoopGroup = EPOLL ? new EpollEventLoopGroup() : new NioEventLoopGroup()) {
+			channel = new ServerBootstrap()
 				.group (eventLoopGroup)
 				.channel(EPOLL ? EpollServerSocketChannel.class : NioServerSocketChannel.class)
 				.childHandler(new ChannelInitializer<Channel>() {
 			    
 					@Override
 					protected void initChannel(Channel channel) throws Exception {
-					
-						channel.pipeline().addLast("default_channel_handler", new SimpleChannelInboundHandler<Object>(){
-							
-							@Override
-							public void channelActive(ChannelHandlerContext ctx) throws Exception {
-								
-								super.channelActive(ctx);
-								System.out.println("Channel connected -> " + ctx.channel());
-							}
-
-							@Override
-							protected void messageReceived(ChannelHandlerContext arg0, Object arg1) throws Exception {
-								// TODO Auto-generated method stub
-								
-							}
-						});					
+						channel.pipeline()
+							.addLast(handler.getDecoder())
+							.addLast(handler.getEncoder());
 					}				
-				}).bind(8000).sync().channel().closeFuture().syncUninterruptibly();
-		} finally {
-			eventLoopGroup.shutdownGracefully();
+				}).bind(port).sync().channel().closeFuture().syncUninterruptibly();
 		}
 	}
-	
-	public static void main(String[] args) throws Exception {
-		new Server();	
+
+	public int getPort() {
+		return port;
 	}
+
+	public ChannelFuture getChannel() {
+		return channel;
+	}
+
+	public PacketHandler getHandler() {
+		return handler;
+	}
+	
+	
 }

@@ -14,7 +14,11 @@ public class Main {
 		if(args.length > 1) {
 			if("server".equalsIgnoreCase(args[0])) {
 				try {
-					new Server();
+					String port = "8000";
+					for(int i = 1; i < (args.length -1); i++) {
+						if("-p".equalsIgnoreCase(port) && args[i +1].matches("\\d+")) port = args[i +1];
+					}
+					new Server(Integer.parseInt(port));
 				} catch (Exception e) {
 					LOG.log(Level.SEVERE, "Could not start Server", e);
 				}

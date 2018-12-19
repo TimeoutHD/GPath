@@ -3,7 +3,6 @@ package de.pi.infodisplay.client.netty;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ConnectTimeoutException;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.epoll.Epoll;
 import io.netty.channel.epoll.EpollEventLoopGroup;
@@ -12,7 +11,6 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import de.pi.infodisplay.Main;
 import de.pi.infodisplay.shared.handler.PacketHandler;
