@@ -15,11 +15,41 @@ import java.util.logging.Level;
 import de.pi.infodisplay.Main;
 import de.pi.infodisplay.shared.handler.PacketHandler;
 
+/**
+ * Diese Klasse ist für die Nettyverbindungen mit dem Server verantwortlich.
+ * Sie kümmert sich um das Netzwerkprotokoll und um das Decoden / Encoden der eingehenden und
+ * ausgehenden Packets.
+ * 
+ * @author PI A
+ *
+ */
 public class NettyClient {
 	
+	/**
+	 * Dieses Field überprüft, ob der Client ein Unix-Betriebsystem besitzt.
+	 * Je nachdem, welches Betriebsystem benutzt wird, muss abgewägt werden, welches Protokoll benutzt werden muss.
+	 * Unix benutzt EPOLL während Windows auf NIO vertraut.
+	 * 
+	 * Die Methode {@code Epoll#isAvailable()} überprüft auf EPOLL und gibt den Wahrheitswert zurück.
+	 * Diese wird als Konstante gespeichert, da sich das Protokoll nicht ohne ein neues Betriebsystem
+	 * zu installieren, nicht ändert
+	 */
 	private static final boolean EPOLL = Epoll.isAvailable();
 	
+	/**
+	 * Das ist das Field für den Port des Servers. 
+	 * Hier wird lediglich der Port des Servers zwischengespeichert.
+	 * 
+	 * Auch hier wird das Attribut nur deklariert.
+	 */
 	private int port;
+	
+	/**
+	 * Das ist das Field für die IPv4-Adresse des Servers.
+	 * Hier wird die IPv4-Adresse zwischengespeichert.
+	 * 
+	 * Auch hier wird das Attribut nur deklariert.
+	 */
 	private String host;
 	private Channel channel;
 	
@@ -44,7 +74,7 @@ public class NettyClient {
 						
 			}).connect(host, port).sync().channel();
 		} catch (Exception e) {
-			Main.getConsole().log(Level.SEVERE, "Failed to connect", e);
+			Main.LOG.log(Level.SEVERE, "Failed to connect", e);
 		}
 	}
 
