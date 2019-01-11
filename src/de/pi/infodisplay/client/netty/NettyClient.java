@@ -51,18 +51,43 @@ public class NettyClient {
 	 * Auch hier wird das Attribut nur deklariert.
 	 */
 	private String host;
+	
+	/**
+	 * Das ist das Field des benutzten Netzwerk-Channels. Über diesen Channel werden
+	 * Pakete und andere Informationen zum Server gesendet und wieder empfangen.
+	 * 
+	 * Auch hier wird das Attribut nur deklariert.
+	 */
 	private Channel channel;
 	
+	/**
+	 * Das ist das Field für den PacketHandler. Diese Klasse handelt das Server-Client 
+	 * Netzwerk.
+	 * 
+	 * Auch hier wird das Attribut nur deklariert.
+	 */
 	private PacketHandler handler;
 
+	/**
+	 * Erstellt eine NettyClient mit einer Verbindung zur Adresse, die als
+	 * Parameter angegeben werden.
+	 * 
+	 * @param host die IPv4-Adresse des Servers
+	 * @param port der Port des Servers
+	 */
 	public NettyClient(String host, int port) {
 		this.port = port;
 		this.host = host;
 		this.handler = new PacketHandler();
+		// EventLoopGroup definieren.
 		try(EventLoopGroup group = EPOLL ? new EpollEventLoopGroup() : new NioEventLoopGroup()) {
-			channel = new Bootstrap() 
+			// Bootstrap erstellen 
+			channel = new Bootstrap()
+					// Mit LoopGroup linken
 					.group(group)
+					// Richtige Class angeben
 					.channel(EPOLL ? EpollSocketChannel.class : NioSocketChannel.class)
+					// Handler registrieren.
 					.handler(new ChannelInitializer<Channel>() {
 
 						@Override

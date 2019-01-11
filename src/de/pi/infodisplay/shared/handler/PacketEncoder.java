@@ -12,12 +12,13 @@ public class PacketEncoder extends MessageToByteEncoder<Packet> {
 	protected void encode(ChannelHandlerContext ctx, Packet packet, ByteBuf output) throws Exception {
 		Class<? extends Packet> packetClass = getPacketTypeByID(packet.getID());
 		if(packetClass != null) {
+			output.writeInt(packet.getID());
 			packet.write(output);
 		} else throw new IllegalArgumentException("Packet-ID is not in Use");
 	}
 
 	/**
-	 * Returns the Class of the Packet, by it's ID.
+	 * Returns the Class of the Packet, by its ID.
 	 * @param id the ID of the Packet
 	 * @return Returns the Class of the Packet.
 	 * It returns null, if the ID does not exist.

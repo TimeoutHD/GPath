@@ -51,7 +51,7 @@ public class Main {
 	 * der sich auf den Server mit der IPv4-Adresse "192.168.178.12" auf den Port 8800 verbindet.
 	 * Sollte -h nicht angegeben werden, wird der localhost als Server verwendet. Bei Falscheingabe wird kein Client gestartet.
 	 * Sollte -p nicht angegeben werden, wird der Port 8000 verwendet. Bei Falscheingabe wird kein Client gestartet.
-	 * @param args
+	 * @param args die nötigen Argumente
 	 */
 	public static void main(String[] args) {
 		if(args.length > 1) {

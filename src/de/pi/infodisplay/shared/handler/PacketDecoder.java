@@ -3,7 +3,6 @@ package de.pi.infodisplay.shared.handler;
 import java.util.List;
 
 import de.pi.infodisplay.shared.packets.Packet;
-import de.pi.infodisplay.shared.packets.PacketClientInInfo;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
@@ -22,7 +21,6 @@ public class PacketDecoder extends ByteToMessageDecoder {
 
 	private Class<? extends Packet> getPacketClassByID(int id) {
 		switch(id) {
-		case 0: return PacketClientInInfo.class;
 		default: return null;
 		}
 	}

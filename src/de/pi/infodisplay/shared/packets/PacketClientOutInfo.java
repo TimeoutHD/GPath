@@ -1,7 +1,10 @@
 package de.pi.infodisplay.shared.packets;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.logging.Level;
 
+import de.pi.infodisplay.Main;
 import io.netty.buffer.ByteBuf;
 
 public class PacketClientOutInfo extends Packet {
@@ -19,7 +22,7 @@ public class PacketClientOutInfo extends Packet {
 
 	@Override
 	public void read(ByteBuf byteBuf) throws IOException {
-		
+		Main.LOG.log(Level.INFO, byteBuf.readBytes(new byte[byteBuf.readableBytes()]).toString(StandardCharsets.UTF_8));
 	}
 
 	@Override
