@@ -4,16 +4,16 @@ import io.netty.buffer.ByteBuf;
 
 import java.io.IOException;
 
-public class PacketPlayOutMessage extends Packet {
+public class PacketServerOutInfo extends Packet {
 	
 	private String msg;
 
-	public PacketPlayOutMessage() {
+	public PacketServerOutInfo() {
 		super(0);
 		this.msg = "";
 	}
 	
-	public PacketPlayOutMessage(String msg) {
+	public PacketServerOutInfo(String msg) {
 		super(0);
 		this.msg = msg;
 	}
