@@ -6,7 +6,7 @@ import io.netty.buffer.ByteBuf;
 
 public abstract class Packet {
 	
-	protected int id;
+	protected int id; 
 	
 	public Packet(int id) {
 		this.id = id;
