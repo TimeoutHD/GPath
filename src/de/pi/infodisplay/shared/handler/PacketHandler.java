@@ -1,7 +1,9 @@
 package de.pi.infodisplay.shared.handler;
 
 import de.pi.infodisplay.client.netty.handler.PacketClientDecoder;
+import de.pi.infodisplay.client.netty.handler.PacketClientEncoder;
 import de.pi.infodisplay.server.handler.PacketServerDecoder;
+import de.pi.infodisplay.server.handler.PacketServerEncoder;
 
 /**
  * Die Klasse PacketHandler ist ein Konstrukt, dass den Decoder und Encoder
@@ -13,9 +15,9 @@ import de.pi.infodisplay.server.handler.PacketServerDecoder;
 public class PacketHandler {
 	
 	/**
-	 * Dieses Field ist das private Field für Decoder.
+	 * Dieses Field ist das private Field fï¿½r Decoder.
 	 * Der Decoder soll die Packets, die reinkommen, decodieren,
-	 * Quasi lesbar für den Java-Compiler machen.
+	 * Quasi lesbar fï¿½r den Java-Compiler machen.
 	 * 
 	 * Hier wird lediglich das Decoder-Field deklariert,
 	 * welches im PacketHandler-Constructor initialisiert wird.
@@ -23,9 +25,9 @@ public class PacketHandler {
 	private PacketDecoder decoder;
 	
 	/**
-	 * Dieses Field ist das private Field für den Encoder.
-	 * Der Encoder ist das Gegenstück vom Decoder und codiert die Packete zu
-	 * einem ByteBuf, der dann über Netty versendet werden kann.
+	 * Dieses Field ist das private Field fï¿½r den Encoder.
+	 * Der Encoder ist das Gegenstï¿½ck vom Decoder und codiert die Packete zu
+	 * einem ByteBuf, der dann ï¿½ber Netty versendet werden kann.
 	 * 
 	 * Auch hier wird lediglich das Encoder-Field deklariert,
 	 * welches im PacketHandler initialisiert wird.
@@ -37,15 +39,18 @@ public class PacketHandler {
 	 * Hier werden die oben genannten Fields initialisiert.
 	 */
 	public PacketHandler(NetworkType type) {
-		// Initialisierung Decoder
-		this.decoder = type == NetworkType.CLIENT ? new PacketClientDecoder() : new PacketServerDecoder();
-		// Intialisierung Encoder
-		this.encoder = new PacketEncoder();
+		if(type == NetworkType.CLIENT) {
+			this.decoder = new PacketClientDecoder();
+			this.encoder = new PacketClientEncoder();
+		} else {
+			this.decoder = new PacketServerDecoder();
+			this.encoder = new PacketServerEncoder();
+		}
 	}
 	
 	/**
-	 * Diese Methode gibt die Referenz des Decoders für dieses Objekt zurück.
-	 * Dadurch ist es möglich, auf den Decoder aus externer Sichtweise zuzugreifen.
+	 * Diese Methode gibt die Referenz des Decoders fï¿½r dieses Objekt zurï¿½ck.
+	 * Dadurch ist es mï¿½glich, auf den Decoder aus externer Sichtweise zuzugreifen.
 	 * 
 	 * @return den Decoder als PacketDecoder
 	 */
@@ -54,8 +59,8 @@ public class PacketHandler {
 	}
 	
 	/**
-	 * Diese Methode gibt die Referenz des Encoders für dieses Objekt zurück.
-	 * Dadurch ist es möglich, auf den Encoder aus externer Sichtweise zuzugreifen.
+	 * Diese Methode gibt die Referenz des Encoders fï¿½r dieses Objekt zurï¿½ck.
+	 * Dadurch ist es mï¿½glich, auf den Encoder aus externer Sichtweise zuzugreifen.
 	 * 
 	 * @return den Encoder als PacketEncoder
 	 */

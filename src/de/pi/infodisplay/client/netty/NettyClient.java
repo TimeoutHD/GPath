@@ -14,10 +14,11 @@ import java.util.logging.Level;
 
 import de.pi.infodisplay.Main;
 import de.pi.infodisplay.shared.handler.PacketHandler;
+import de.pi.infodisplay.shared.handler.PacketHandler.NetworkType;
 
 /**
- * Diese Klasse ist für die Nettyverbindungen mit dem Server verantwortlich.
- * Sie kümmert sich um das Netzwerkprotokoll und um das Decoden / Encoden der eingehenden und
+ * Diese Klasse ist fï¿½r die Nettyverbindungen mit dem Server verantwortlich.
+ * Sie kï¿½mmert sich um das Netzwerkprotokoll und um das Decoden / Encoden der eingehenden und
  * ausgehenden Packets.
  * 
  * @author PI A
@@ -26,18 +27,18 @@ import de.pi.infodisplay.shared.handler.PacketHandler;
 public class NettyClient {
 	
 	/**
-	 * Dieses Field überprüft, ob der Client ein Unix-Betriebsystem besitzt.
-	 * Je nachdem, welches Betriebsystem benutzt wird, muss abgewägt werden, welches Protokoll benutzt werden muss.
-	 * Unix benutzt EPOLL während Windows auf NIO vertraut.
+	 * Dieses Field ï¿½berprï¿½ft, ob der Client ein Unix-Betriebsystem besitzt.
+	 * Je nachdem, welches Betriebsystem benutzt wird, muss abgewï¿½gt werden, welches Protokoll benutzt werden muss.
+	 * Unix benutzt EPOLL wï¿½hrend Windows auf NIO vertraut.
 	 * 
-	 * Die Methode {@code Epoll#isAvailable()} überprüft auf EPOLL und gibt den Wahrheitswert zurück.
+	 * Die Methode {@code Epoll#isAvailable()} ï¿½berprï¿½ft auf EPOLL und gibt den Wahrheitswert zurï¿½ck.
 	 * Diese wird als Konstante gespeichert, da sich das Protokoll nicht ohne ein neues Betriebsystem
-	 * zu installieren, nicht ändert
+	 * zu installieren, nicht ï¿½ndert
 	 */
 	private static final boolean EPOLL = Epoll.isAvailable();
 	
 	/**
-	 * Das ist das Field für den Port des Servers. 
+	 * Das ist das Field fï¿½r den Port des Servers. 
 	 * Hier wird lediglich der Port des Servers zwischengespeichert.
 	 * 
 	 * Auch hier wird das Attribut nur deklariert.
@@ -45,7 +46,7 @@ public class NettyClient {
 	private int port;
 	
 	/**
-	 * Das ist das Field für die IPv4-Adresse des Servers.
+	 * Das ist das Field fï¿½r die IPv4-Adresse des Servers.
 	 * Hier wird die IPv4-Adresse zwischengespeichert.
 	 * 
 	 * Auch hier wird das Attribut nur deklariert.
@@ -53,7 +54,7 @@ public class NettyClient {
 	private String host;
 	
 	/**
-	 * Das ist das Field des benutzten Netzwerk-Channels. Über diesen Channel werden
+	 * Das ist das Field des benutzten Netzwerk-Channels. ï¿½ber diesen Channel werden
 	 * Pakete und andere Informationen zum Server gesendet und wieder empfangen.
 	 * 
 	 * Auch hier wird das Attribut nur deklariert.
@@ -61,7 +62,7 @@ public class NettyClient {
 	private Channel channel;
 	
 	/**
-	 * Das ist das Field für den PacketHandler. Diese Klasse handelt das Server-Client 
+	 * Das ist das Field fï¿½r den PacketHandler. Diese Klasse handelt das Server-Client 
 	 * Netzwerk.
 	 * 
 	 * Auch hier wird das Attribut nur deklariert.
@@ -78,7 +79,7 @@ public class NettyClient {
 	public NettyClient(String host, int port) {
 		this.port = port;
 		this.host = host;
-		this.handler = new PacketHandler();
+		this.handler = new PacketHandler(NetworkType.CLIENT);
 		// EventLoopGroup definieren.
 		try(EventLoopGroup group = EPOLL ? new EpollEventLoopGroup() : new NioEventLoopGroup()) {
 			// Bootstrap erstellen 

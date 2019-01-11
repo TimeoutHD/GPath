@@ -1,6 +1,7 @@
 package de.pi.infodisplay.server;
 
 import de.pi.infodisplay.shared.handler.PacketHandler;
+import de.pi.infodisplay.shared.handler.PacketHandler.NetworkType;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -24,7 +25,7 @@ public class Server {
 
 	public Server(int port) throws Exception {
 		this.port = port;
-		this.handler = new PacketHandler();
+		this.handler = new PacketHandler(NetworkType.SERVER);
 		
 		try (EventLoopGroup eventLoopGroup = EPOLL ? new EpollEventLoopGroup() : new NioEventLoopGroup()) {
 			channel = new ServerBootstrap()
