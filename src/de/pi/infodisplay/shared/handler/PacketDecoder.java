@@ -7,7 +7,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 
-public class PacketDecoder extends ByteToMessageDecoder {
+public abstract class PacketDecoder extends ByteToMessageDecoder {
 	
 	@Override
 	protected void decode(ChannelHandlerContext arg0, ByteBuf input, List<Object> arg2) throws Exception {
@@ -19,10 +19,6 @@ public class PacketDecoder extends ByteToMessageDecoder {
 		} else throw new IllegalArgumentException("Packet-ID " + id + " is not in use");
 	}
 
-	private Class<? extends Packet> getPacketClassByID(int id) {
-		switch(id) {
-		default: return null;
-		}
-	}
+	protected abstract Class<? extends Packet> getPacketClassByID(int id);
 }
 
