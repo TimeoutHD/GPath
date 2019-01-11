@@ -13,14 +13,22 @@ public abstract class Packet {
 	}
 	
 	/**
-	 * Read the Packet from ByteBuf
-	 * @param byteBuf the ByteBuf
-	 * @throws IOException if the ByteBuf is not acceptable with the Packet
+	 * Liest das Paket aus einem ByteBuf.
+	 * @param Das Argument byteBuf repräsentiert den ByteBuf.
+	 * @throws Eine IOException wird geworfen, wenn der ByteBuf keinen passenden Paketinhalt hat.
 	 */
 	public abstract void read(ByteBuf byteBuf) throws IOException;
 
+	/**
+	 * Schreibt das Paket in einem ByteBuf.
+	 * @param Das Argument byteBuf repräsentiert den ByteBuf.
+	 * @throws Eine IOException wird geworfen, wenn der ByteBuf das Paket nicht unterstützt.
+	 */
 	public abstract void write(ByteBuf byteBuf) throws IOException;
 	
+	/**
+	 * @return Gibt die ID des Pakets zurück.
+	 */
 	public int getID() {
 		return id;
 	}
