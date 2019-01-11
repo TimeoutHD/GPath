@@ -4,15 +4,15 @@ import java.io.IOException;
 
 import io.netty.buffer.ByteBuf;
 
-public class PacketPlayOutInt extends Packet {
+public class PacketServerOutInt extends Packet {
 
 	private int number;
 	
-	public PacketPlayOutInt() {
+	public PacketServerOutInt() {
 		super(0);
 	}
 	
-	public PacketPlayOutInt(int number) {
+	public PacketServerOutInt(int number) {
 		super(0);
 		this.number = number;
 	}
