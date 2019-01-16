@@ -10,19 +10,19 @@ import de.pi.infodisplay.client.netty.NettyClient;
 public class Client {
 	
 	/**
-	 * Das ist das Field für den NettyClient. Der NettyClient
-	 * ist für die Verbindung zum Server und das Netzwerk verantwortlich.
-	 * Hierüber werden alle Packets gesendet und empfangen.
+	 * Das ist das Field fÃ¼r den NettyClient. Der NettyClient
+	 * ist fÃ¼r die Verbindung zum Server und das Netzwerk verantwortlich.
+	 * HierÃ¼ber werden alle Packets gesendet und empfangen.
 	 * 
 	 * Hier wird das Field nur deklariert. Die Initialisierung findet im Constructor statt.
 	 */
 	private NettyClient netty;
 	
 	/**
-	 * Das ist der Constructor für die Clientklasse.
+	 * Das ist der Constructor fÃ¼r die Clientklasse.
 	 * Hier werden alle Werte mit den richtigen Werten initialisiert.
 	 * Dabei werden die richtigen Werte aus dem Parametern benutzt.
-	 * Sie werden nicht auf Richtogkeit überprüft.
+	 * Sie werden nicht auf Richtogkeit Ã¼berprÃ¼ft.
 	 * 
 	 * @param host Die IPv4-Adresse des Servers
 	 * @param port Der Port des Servers
@@ -33,11 +33,11 @@ public class Client {
 	}
 	
 	/**
-	 * Diese Methode gibt den NettyClient zurück.
+	 * Diese Methode gibt den NettyClient zurï¿½ck.
 	 * 
 	 * Hierbei ist der NettyClient der Teil des Clients, der sich um die Netzwerkprotokolle
-	 * und die Packets kümmert.
-	 * Zudem kümmert sich der NettyClient auch um das Encoden / Decoden der Packets.
+	 * und die Packets kÃ¼mmert.
+	 * Zudem kÃ¼mmert sich der NettyClient auch um das Encoden / Decoden der Packets.
 	 * @return Den NettyClient des Clients.
 	 */
 	public NettyClient getNettyClient() {

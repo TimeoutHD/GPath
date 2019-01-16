@@ -18,7 +18,7 @@ import de.pi.infodisplay.shared.handler.PacketHandler.NetworkType;
 
 /**
  * Diese Klasse ist f�r die Nettyverbindungen mit dem Server verantwortlich.
- * Sie k�mmert sich um das Netzwerkprotokoll und um das Decoden / Encoden der eingehenden und
+ * Sie kümmert sich um das Netzwerkprotokoll und um das Decoden / Encoden der eingehenden und
  * ausgehenden Packets.
  * 
  * @author PI A
@@ -27,18 +27,18 @@ import de.pi.infodisplay.shared.handler.PacketHandler.NetworkType;
 public class NettyClient {
 	
 	/**
-	 * Dieses Field �berpr�ft, ob der Client ein Unix-Betriebsystem besitzt.
-	 * Je nachdem, welches Betriebsystem benutzt wird, muss abgew�gt werden, welches Protokoll benutzt werden muss.
-	 * Unix benutzt EPOLL w�hrend Windows auf NIO vertraut.
+	 * Dieses Field überprüft, ob der Client ein Unix-Betriebsystem besitzt.
+	 * Je nachdem, welches Betriebsystem benutzt wird, muss abgewägt werden, welches Protokoll benutzt werden muss.
+	 * Unix benutzt EPOLL während Windows auf NIO vertraut.
 	 * 
-	 * Die Methode {@code Epoll#isAvailable()} �berpr�ft auf EPOLL und gibt den Wahrheitswert zur�ck.
+	 * Die Methode {@code Epoll#isAvailable()} überprüft auf EPOLL und gibt den Wahrheitswert zurück.
 	 * Diese wird als Konstante gespeichert, da sich das Protokoll nicht ohne ein neues Betriebsystem
-	 * zu installieren, nicht �ndert
+	 * zu installieren, nicht ändert
 	 */
 	private static final boolean EPOLL = Epoll.isAvailable();
 	
 	/**
-	 * Das ist das Field f�r den Port des Servers. 
+	 * Das ist das Field für den Port des Servers. 
 	 * Hier wird lediglich der Port des Servers zwischengespeichert.
 	 * 
 	 * Auch hier wird das Attribut nur deklariert.
@@ -54,7 +54,7 @@ public class NettyClient {
 	private String host;
 	
 	/**
-	 * Das ist das Field des benutzten Netzwerk-Channels. �ber diesen Channel werden
+	 * Das ist das Field des benutzten Netzwerk-Channels. über diesen Channel werden
 	 * Pakete und andere Informationen zum Server gesendet und wieder empfangen.
 	 * 
 	 * Auch hier wird das Attribut nur deklariert.
@@ -62,7 +62,7 @@ public class NettyClient {
 	private Channel channel;
 	
 	/**
-	 * Das ist das Field f�r den PacketHandler. Diese Klasse handelt das Server-Client 
+	 * Das ist das Field für den PacketHandler. Diese Klasse handelt das Server-Client 
 	 * Netzwerk.
 	 * 
 	 * Auch hier wird das Attribut nur deklariert.

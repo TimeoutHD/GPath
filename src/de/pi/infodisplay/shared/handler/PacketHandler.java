@@ -15,9 +15,9 @@ import de.pi.infodisplay.server.handler.PacketServerEncoder;
 public class PacketHandler {
 	
 	/**
-	 * Dieses Field ist das private Field f�r Decoder.
+	 * Dieses Field ist das private Field für Decoder.
 	 * Der Decoder soll die Packets, die reinkommen, decodieren,
-	 * Quasi lesbar f�r den Java-Compiler machen.
+	 * Quasi lesbar für den Java-Compiler machen.
 	 * 
 	 * Hier wird lediglich das Decoder-Field deklariert,
 	 * welches im PacketHandler-Constructor initialisiert wird.
@@ -25,9 +25,9 @@ public class PacketHandler {
 	private PacketDecoder decoder;
 	
 	/**
-	 * Dieses Field ist das private Field f�r den Encoder.
-	 * Der Encoder ist das Gegenst�ck vom Decoder und codiert die Packete zu
-	 * einem ByteBuf, der dann �ber Netty versendet werden kann.
+	 * Dieses Field ist das private Field für den Encoder.
+	 * Der Encoder ist das Gegenstück vom Decoder und codiert die Packete zu
+	 * einem ByteBuf, der dann über Netty versendet werden kann.
 	 * 
 	 * Auch hier wird lediglich das Encoder-Field deklariert,
 	 * welches im PacketHandler initialisiert wird.
@@ -49,8 +49,8 @@ public class PacketHandler {
 	}
 	
 	/**
-	 * Diese Methode gibt die Referenz des Decoders f�r dieses Objekt zur�ck.
-	 * Dadurch ist es m�glich, auf den Decoder aus externer Sichtweise zuzugreifen.
+	 * Diese Methode gibt die Referenz des Decoders für dieses Objekt zur�ck.
+	 * Dadurch ist es möglich, auf den Decoder aus externer Sichtweise zuzugreifen.
 	 * 
 	 * @return den Decoder als PacketDecoder
 	 */
@@ -59,8 +59,8 @@ public class PacketHandler {
 	}
 	
 	/**
-	 * Diese Methode gibt die Referenz des Encoders f�r dieses Objekt zur�ck.
-	 * Dadurch ist es m�glich, auf den Encoder aus externer Sichtweise zuzugreifen.
+	 * Diese Methode gibt die Referenz des Encoders für dieses Objekt zur�ck.
+	 * Dadurch ist es möglich, auf den Encoder aus externer Sichtweise zuzugreifen.
 	 * 
 	 * @return den Encoder als PacketEncoder
 	 */
