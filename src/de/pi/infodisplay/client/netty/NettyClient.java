@@ -13,8 +13,12 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import java.util.logging.Level;
 
 import de.pi.infodisplay.Main;
+import de.pi.infodisplay.client.netty.handler.ClientNetworkHandler;
 import de.pi.infodisplay.shared.handler.PacketHandler;
 import de.pi.infodisplay.shared.handler.PacketHandler.NetworkType;
+import de.pi.infodisplay.shared.packets.Packet;
+import de.pi.infodisplay.shared.packets.PacketClientOutInfo;
+import de.pi.infodisplay.shared.packets.PacketServerOutInfo;
 
 /**
  * Diese Klasse ist f�r die Nettyverbindungen mit dem Server verantwortlich.
@@ -95,10 +99,16 @@ public class NettyClient {
 						protected void initChannel(Channel channel) throws Exception {
 							channel.pipeline()
 								.addLast(handler.getDecoder())
-								.addLast(handler.getEncoder());
+								.addLast(handler.getEncoder())
+								.addLast(new ClientNetworkHandler());
 						}
 						
 			}).connect(host, port).sync().channel();
+			
+			
+			Thread.sleep(Math.multiplyExact(1000L, 5L));
+			PacketClientOutInfo info = new PacketClientOutInfo("Hey, ich bin ein Test");
+			sendPacket(info);
 		} catch (Exception e) {
 			Main.LOG.log(Level.SEVERE, "Failed to connect", e);
 		}
@@ -118,5 +128,9 @@ public class NettyClient {
 	
 	public PacketHandler getPacketHandler() {
 		return handler;
+	}
+	
+	public void sendPacket(Packet packet) {
+		this.channel.writeAndFlush(packet, channel.voidPromise());
 	}
 }

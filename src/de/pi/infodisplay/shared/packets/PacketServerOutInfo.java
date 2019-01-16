@@ -34,10 +34,10 @@ public class PacketServerOutInfo extends Packet {
 
 	@Override
 	public void write(ByteBuf byteBuf) throws IOException {
-		byteBuf.writeBytes(this.getMsg().getBytes());
+		byteBuf.writeBytes(this.msg.getBytes());
 	}
 
-	public String getMsg() {
+	public String getMessage() {
 		return this.msg;
 	}
 }

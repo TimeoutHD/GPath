@@ -1,7 +1,9 @@
 package de.pi.infodisplay.server;
 
+import de.pi.infodisplay.server.handler.ServerNetworkHandler;
 import de.pi.infodisplay.shared.handler.PacketHandler;
 import de.pi.infodisplay.shared.handler.PacketHandler.NetworkType;
+import de.pi.infodisplay.shared.packets.PacketServerOutInfo;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -37,7 +39,8 @@ public class Server {
 					protected void initChannel(Channel channel) throws Exception {
 						channel.pipeline()
 							.addLast(handler.getDecoder())
-							.addLast(handler.getEncoder());
+							.addLast(handler.getEncoder())
+							.addLast(new ServerNetworkHandler());
 					}				
 				}).bind(port).sync().channel().closeFuture().syncUninterruptibly();
 		}
