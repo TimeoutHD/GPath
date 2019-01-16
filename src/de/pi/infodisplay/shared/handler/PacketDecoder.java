@@ -10,13 +10,15 @@ import io.netty.handler.codec.ByteToMessageDecoder;
 public abstract class PacketDecoder extends ByteToMessageDecoder {
 	
 	@Override
-	protected void decode(ChannelHandlerContext arg0, ByteBuf input, List<Object> arg2) throws Exception {
-		int id = input.readInt();
-		Class<? extends Packet> packetClass = getPacketClassByID(id);
-		if(packetClass != null) {
-			Packet packet = packetClass.getConstructor(int.class).newInstance(id);
-			packet.read(input);
-		} else throw new IllegalArgumentException("Packet-ID " + id + " is not in use");
+	protected void decode(ChannelHandlerContext ctx, ByteBuf input, List<Object> objects) throws Exception {
+		if(input.isReadable()) {
+			int id = input.readInt();
+			Class<? extends Packet> packetClass = getPacketClassByID(id);
+			if(packetClass != null) {
+				Packet packet = packetClass.getConstructor(int.class).newInstance(id);
+				packet.read(input);
+			} else throw new IllegalArgumentException("Packet-ID " + id + " is not in use");
+		}
 	}
 
 	protected abstract Class<? extends Packet> getPacketClassByID(int id);

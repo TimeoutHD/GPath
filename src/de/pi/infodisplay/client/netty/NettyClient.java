@@ -1,13 +1,15 @@
 package de.pi.infodisplay.client.netty;
 
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.epoll.Epoll;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
 import java.util.logging.Level;
@@ -17,8 +19,6 @@ import de.pi.infodisplay.client.netty.handler.ClientNetworkHandler;
 import de.pi.infodisplay.shared.handler.PacketHandler;
 import de.pi.infodisplay.shared.handler.PacketHandler.NetworkType;
 import de.pi.infodisplay.shared.packets.Packet;
-import de.pi.infodisplay.shared.packets.PacketClientOutInfo;
-import de.pi.infodisplay.shared.packets.PacketServerOutInfo;
 
 /**
  * Diese Klasse ist f�r die Nettyverbindungen mit dem Server verantwortlich.
@@ -63,7 +63,7 @@ public class NettyClient {
 	 * 
 	 * Auch hier wird das Attribut nur deklariert.
 	 */
-	private Channel channel;
+	private ChannelFuture channel;
 	
 	/**
 	 * Das ist das Field für den PacketHandler. Diese Klasse handelt das Server-Client 
@@ -92,23 +92,30 @@ public class NettyClient {
 					.group(group)
 					// Richtige Class angeben
 					.channel(EPOLL ? EpollSocketChannel.class : NioSocketChannel.class)
+					.option(ChannelOption.SO_KEEPALIVE, true)
 					// Handler registrieren.
-					.handler(new ChannelInitializer<Channel>() {
+					.handler(new ChannelInitializer<SocketChannel>() {
 
 						@Override
-						protected void initChannel(Channel channel) throws Exception {
+						protected void initChannel(SocketChannel channel) throws Exception {
 							channel.pipeline()
-								.addLast(handler.getDecoder())
 								.addLast(handler.getEncoder())
+								.addLast(handler.getDecoder())
 								.addLast(new ClientNetworkHandler());
+							Main.LOG.log(Level.INFO, "Connected to Server -> " + host);
 						}
 						
-			}).connect(host, port).sync().channel();
-			
-			
-			Thread.sleep(Math.multiplyExact(1000L, 5L));
-			PacketClientOutInfo info = new PacketClientOutInfo("Hey, ich bin ein Test");
-			sendPacket(info);
+			}).connect(host, port).sync().channel().closeFuture().sync();
+//			BufferedReader reader = new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8));
+//			String line;
+//			while((line = reader.readLine().toLowerCase(Locale.GERMAN)) != null) {
+//				if(!line.isEmpty()) {
+//					if("ping".startsWith(line)) {
+//						PacketClientOutInfo info = new PacketClientOutInfo("Hey, ich bin ein Test");
+//						sendPacket(info);
+//					}
+//				}
+//			}
 		} catch (Exception e) {
 			Main.LOG.log(Level.SEVERE, "Failed to connect", e);
 		}
@@ -122,7 +129,7 @@ public class NettyClient {
 		return host;
 	}
 
-	public Channel getChannel() {
+	public ChannelFuture getChannel() {
 		return channel;
 	}
 	
@@ -131,6 +138,6 @@ public class NettyClient {
 	}
 	
 	public void sendPacket(Packet packet) {
-		this.channel.writeAndFlush(packet, channel.voidPromise());
+		this.channel.channel().writeAndFlush(packet, channel.channel().voidPromise());
 	}
 }

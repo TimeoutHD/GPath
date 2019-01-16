@@ -58,20 +58,15 @@ public class Main {
 			String port = "8000";
 			// Wenn der erste Parameter "server" ist.
 			if("server".equalsIgnoreCase(args[0])) {
-				try {
-					// Argumente einlesen
-					for(int i = 1; i < (args.length -1); i++) {
-						// Wenn der Port eine vern�nftige Zahlenkombination ist
-						if("-p".equalsIgnoreCase(port) && args[i +1].matches("\\d+")) port = args[i +1];
-					}
-					// Erstellt neuen Server
-					int p = Integer.parseInt(port);
-					// Wenn die Portzahl im möglichen Bereich ist, starte den Server...
-					new Server(p >= 0 && p <= 65535 ? p : 8000);
-				} catch (Exception e) {
-					// Fehler...
-					LOG.log(Level.SEVERE, "Could not start Server", e);
+				// Argumente einlesen
+				for(int i = 1; i < (args.length -1); i++) {
+					// Wenn der Port eine vern�nftige Zahlenkombination ist
+					if("-p".equalsIgnoreCase(args[i]) && args[i +1].matches("\\d+")) port = args[i +1];
 				}
+				// Erstellt neuen Server
+				int p = Integer.parseInt(port);
+				// Wenn die Portzahl im möglichen Bereich ist, starte den Server...
+				new Server(p >= 0 && p <= 65535 ? p : 8000);
 			// Wenn der erste Parameter "client" ist.
 			} else if("client".equalsIgnoreCase(args[0])) {
 				String host = "127.0.0.1";
