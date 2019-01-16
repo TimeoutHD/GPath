@@ -1,33 +1,43 @@
 package de.pi.infodisplay.shared.packets;
 
+import io.netty.buffer.ByteBuf;
+
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.logging.Level;
 
 import de.pi.infodisplay.Main;
-import io.netty.buffer.ByteBuf;
 
 public class PacketClientOutInfo extends Packet {
 	
-	private String message;
+	private String msg;
 	
 	public PacketClientOutInfo(String message) {
 		super(0);
-		this.message = message;
+		this.msg = message;
 	}
 
 	public String getMessage() {
-		return message;
+		return msg;
 	}
 
 	@Override
 	public void read(ByteBuf byteBuf) throws IOException {
-		Main.LOG.log(Level.INFO, byteBuf.readBytes(new byte[byteBuf.readableBytes()]).toString(StandardCharsets.UTF_8));
+
+		byte[] bytes = new byte[byteBuf.readableBytes()];
+		
+		byteBuf.readBytes(bytes);
+		this.msg = String.valueOf(bytes);
+		
+		Main.LOG.log(Level.INFO, this.msg);
 	}
 
 	@Override
 	public void write(ByteBuf byteBuf) throws IOException {
-		
+		byteBuf.writeBytes(this.getMsg().getBytes());
 	}
+	
 
+	public String getMsg() {
+		return this.msg;
+	}
 }
