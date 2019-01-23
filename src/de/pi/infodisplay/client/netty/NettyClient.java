@@ -1,6 +1,7 @@
 package de.pi.infodisplay.client.netty;
 
 import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
@@ -12,6 +13,8 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.util.logging.Level;
 
 import de.pi.infodisplay.Main;
@@ -64,7 +67,7 @@ public class NettyClient {
 	 * 
 	 * Auch hier wird das Attribut nur deklariert.
 	 */
-	private ChannelFuture channel;
+	private Channel channel;
 	
 	/**
 	 * Das ist das Field für den PacketHandler. Diese Klasse handelt das Server-Client 
@@ -110,12 +113,26 @@ public class NettyClient {
 						
 			});
 			Main.LOG.log(Level.INFO, "Server sucessfully started");
-			channel = trap.connect(host, port).sync().channel().closeFuture().sync();
+			channel = trap.connect(host, port).sync().channel();
+			
+			//Console-Input
+			ChannelFuture lastWriteFuture;
+			BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+			String line;
+			while(true) {
+				line = in.readLine();
+				if("end".equalsIgnoreCase(line)) {
+					//Disconnect-Command
+					PacketClientOutDisconnect disconnect = new PacketClientOutDisconnect();
+					lastWriteFuture = sendPacket(channel, disconnect);
+					break;
+				}
+			}	
+			
+			if(lastWriteFuture != null) lastWriteFuture.sync();
 		} catch (Exception e) {
 			Main.LOG.log(Level.SEVERE, "Failed to connect", e);
 		} finally {
-			PacketClientOutDisconnect disconnect = new PacketClientOutDisconnect();
-			sendPacket(disconnect);
 			group.shutdownGracefully();
 		}
 	}
@@ -128,7 +145,7 @@ public class NettyClient {
 		return host;
 	}
 
-	public ChannelFuture getChannel() {
+	public Channel getChannel() {
 		return channel;
 	}
 	
@@ -136,7 +153,11 @@ public class NettyClient {
 		return handler;
 	}
 	
-	public void sendPacket(Packet packet) {
-		this.channel.channel().writeAndFlush(packet, channel.channel().voidPromise());
+	public ChannelFuture sendPacket(Channel channel, Packet packet) {
+		return channel.writeAndFlush(packet, channel.voidPromise());
+	}
+	
+	public ChannelFuture sendPacket(Packet packet) {
+		return this.sendPacket(channel, packet);
 	}
 }
