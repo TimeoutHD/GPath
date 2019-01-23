@@ -6,6 +6,7 @@ import io.netty.channel.ChannelHandlerContext;
 import de.pi.infodisplay.Main;
 import de.pi.infodisplay.shared.handler.NetworkHandler;
 import de.pi.infodisplay.shared.packets.Packet;
+import de.pi.infodisplay.shared.packets.PacketClientOutDisconnect;
 import de.pi.infodisplay.shared.packets.PacketClientOutInfo;
 
 public class ServerNetworkHandler extends NetworkHandler {
@@ -15,6 +16,9 @@ public class ServerNetworkHandler extends NetworkHandler {
 		if(channel != null) {
 			if(packet instanceof PacketClientOutInfo) {
 				Main.LOG.log(Level.INFO, ((PacketClientOutInfo)packet).getMessage());
+			} if(packet instanceof PacketClientOutDisconnect) {
+				ctx.close(ctx.voidPromise());
+				Main.LOG.log(Level.INFO, "Client " + ctx.channel().remoteAddress().toString() + " -> Disconnected");
 			}
 		}
 	}

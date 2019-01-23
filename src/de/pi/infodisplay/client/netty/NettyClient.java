@@ -19,6 +19,7 @@ import de.pi.infodisplay.client.netty.handler.ClientNetworkHandler;
 import de.pi.infodisplay.shared.handler.PacketHandler;
 import de.pi.infodisplay.shared.handler.PacketHandler.NetworkType;
 import de.pi.infodisplay.shared.packets.Packet;
+import de.pi.infodisplay.shared.packets.PacketClientOutDisconnect;
 
 /**
  * Diese Klasse ist f�r die Nettyverbindungen mit dem Server verantwortlich.
@@ -84,17 +85,19 @@ public class NettyClient {
 		this.port = port;
 		this.host = host;
 		this.handler = new PacketHandler(NetworkType.CLIENT);
+		Bootstrap trap = new Bootstrap();
+		EventLoopGroup group = EPOLL ? new EpollEventLoopGroup() : new NioEventLoopGroup();
+
 		// EventLoopGroup definieren.
-		try(EventLoopGroup group = EPOLL ? new EpollEventLoopGroup() : new NioEventLoopGroup()) {
+		try {
 			// Bootstrap erstellen 
-			channel = new Bootstrap()
-					// Mit LoopGroup linken
-					.group(group)
-					// Richtige Class angeben
-					.channel(EPOLL ? EpollSocketChannel.class : NioSocketChannel.class)
-					.option(ChannelOption.SO_KEEPALIVE, true)
-					// Handler registrieren.
-					.handler(new ChannelInitializer<SocketChannel>() {
+			// Mit LoopGroup linken
+			trap.group(group);
+			// Richtige Class angeben
+			trap.channel(EPOLL ? EpollSocketChannel.class : NioSocketChannel.class);
+			trap.option(ChannelOption.SO_KEEPALIVE, true);
+			// Handler registrieren.
+			trap.handler(new ChannelInitializer<SocketChannel>() {
 
 						@Override
 						protected void initChannel(SocketChannel channel) throws Exception {
@@ -105,19 +108,15 @@ public class NettyClient {
 							Main.LOG.log(Level.INFO, "Connected to Server -> " + host);
 						}
 						
-			}).connect(host, port).sync().channel().closeFuture().sync();
-//			BufferedReader reader = new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8));
-//			String line;
-//			while((line = reader.readLine().toLowerCase(Locale.GERMAN)) != null) {
-//				if(!line.isEmpty()) {
-//					if("ping".startsWith(line)) {
-//						PacketClientOutInfo info = new PacketClientOutInfo("Hey, ich bin ein Test");
-//						sendPacket(info);
-//					}
-//				}
-//			}
+			});
+			Main.LOG.log(Level.INFO, "Server sucessfully started");
+			channel = trap.connect(host, port).sync().channel().closeFuture().sync();
 		} catch (Exception e) {
 			Main.LOG.log(Level.SEVERE, "Failed to connect", e);
+		} finally {
+			PacketClientOutDisconnect disconnect = new PacketClientOutDisconnect();
+			sendPacket(disconnect);
+			group.shutdownGracefully();
 		}
 	}
 

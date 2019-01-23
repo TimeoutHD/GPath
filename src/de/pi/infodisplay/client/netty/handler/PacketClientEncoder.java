@@ -2,6 +2,7 @@ package de.pi.infodisplay.client.netty.handler;
 
 import de.pi.infodisplay.shared.handler.PacketEncoder;
 import de.pi.infodisplay.shared.packets.Packet;
+import de.pi.infodisplay.shared.packets.PacketClientOutDisconnect;
 import de.pi.infodisplay.shared.packets.PacketClientOutInfo;
 
 public class PacketClientEncoder extends PacketEncoder {
@@ -10,6 +11,7 @@ public class PacketClientEncoder extends PacketEncoder {
 	protected Class<? extends Packet> getPacketTypeByID(int id) {
 		switch(id) {
 		case 0: return PacketClientOutInfo.class;
+		case 777: return PacketClientOutDisconnect.class;
 		default: return null;
 		}
 	}

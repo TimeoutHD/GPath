@@ -10,6 +10,7 @@ public class PacketServerEncoder extends PacketEncoder {
 	protected Class<? extends Packet> getPacketTypeByID(int id) {
 		switch(id) {
 		case 0: return PacketServerOutInfo.class;
+		
 		default: return null;
 		}
 	}

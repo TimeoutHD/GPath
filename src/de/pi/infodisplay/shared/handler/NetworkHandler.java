@@ -1,5 +1,8 @@
 package de.pi.infodisplay.shared.handler;
 
+import java.util.logging.Level;
+
+import de.pi.infodisplay.Main;
 import de.pi.infodisplay.shared.packets.Packet;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -12,6 +15,11 @@ public abstract class NetworkHandler extends SimpleChannelInboundHandler<Packet>
 	@Override
 	public void channelActive(ChannelHandlerContext ctx) {
 		this.channel = ctx.channel();
+	}
+
+	@Override
+	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+		Main.LOG.log(Level.SEVERE, "Error while Connection: ", cause);
 	}
 
 }
