@@ -18,6 +18,7 @@ import java.io.InputStreamReader;
 import java.util.logging.Level;
 
 import de.pi.infodisplay.Main;
+import de.pi.infodisplay.client.Client;
 import de.pi.infodisplay.client.netty.handler.ClientNetworkHandler;
 import de.pi.infodisplay.shared.handler.PacketHandler;
 import de.pi.infodisplay.shared.handler.PacketHandler.NetworkType;
@@ -76,6 +77,8 @@ public class NettyClient {
 	 * Auch hier wird das Attribut nur deklariert.
 	 */
 	private PacketHandler handler;
+	
+	private Client parent;
 
 	/**
 	 * Erstellt eine NettyClient mit einer Verbindung zur Adresse, die als
@@ -84,10 +87,12 @@ public class NettyClient {
 	 * @param host die IPv4-Adresse des Servers
 	 * @param port der Port des Servers
 	 */
-	public NettyClient(String host, int port) {
+	public NettyClient(Client parent, String host, int port) {
+		this.parent = parent;
 		this.port = port;
 		this.host = host;
 		this.handler = new PacketHandler(NetworkType.CLIENT);
+		parent.startConsole();
 		Bootstrap trap = new Bootstrap();
 		EventLoopGroup group = EPOLL ? new EpollEventLoopGroup() : new NioEventLoopGroup();
 
@@ -107,7 +112,7 @@ public class NettyClient {
 							channel.pipeline()
 								.addLast(handler.getEncoder())
 								.addLast(handler.getDecoder())
-								.addLast(new ClientNetworkHandler());
+								.addLast(new ClientNetworkHandler(parent));
 							Main.LOG.log(Level.INFO, "Connected to Server -> " + host);
 						}
 						
@@ -115,26 +120,26 @@ public class NettyClient {
 			Main.LOG.log(Level.INFO, "Server sucessfully started");
 			channel = trap.connect(host, port).sync().channel();
 			
-			//Console-Input
-			ChannelFuture lastWriteFuture;
-			BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
-			String line;
-			while(true) {
-				line = in.readLine();
-				if("end".equalsIgnoreCase(line)) {
-					//Disconnect-Command
-					PacketClientOutDisconnect disconnect = new PacketClientOutDisconnect();
-					lastWriteFuture = sendPacket(channel, disconnect);
-					break;
-				}
-			}	
-			
-			if(lastWriteFuture != null) lastWriteFuture.sync();
+//			//Console-Input
+//			ChannelFuture lastWriteFuture;
+//			BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+//			String line;
+//			while(true) {
+//				line = in.readLine();
+//				if("end".equalsIgnoreCase(line)) {
+//					//Disconnect-Command
+//					PacketClientOutDisconnect disconnect = new PacketClientOutDisconnect();
+//					lastWriteFuture = sendPacket(channel, disconnect);
+//					break;
+//				}
+//			}	
+//			
+//			if(lastWriteFuture != null) lastWriteFuture.sync();
 		} catch (Exception e) {
 			Main.LOG.log(Level.SEVERE, "Failed to connect", e);
 		} finally {
 			group.shutdownGracefully();
-		}
+		}	
 	}
 
 	public int getPort() {
@@ -154,10 +159,14 @@ public class NettyClient {
 	}
 	
 	public ChannelFuture sendPacket(Channel channel, Packet packet) {
-		return channel.writeAndFlush(packet, channel.voidPromise());
+		return channel.writeAndFlush(packet);
 	}
 	
 	public ChannelFuture sendPacket(Packet packet) {
 		return this.sendPacket(channel, packet);
+	}
+	
+	public Client getParent() {
+		return parent;
 	}
 }

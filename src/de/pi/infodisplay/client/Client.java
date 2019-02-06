@@ -18,6 +18,8 @@ public class Client {
 	 */
 	private NettyClient netty;
 	
+	private Console console;
+	
 	/**
 	 * Das ist der Constructor für die Clientklasse.
 	 * Hier werden alle Werte mit den richtigen Werten initialisiert.
@@ -29,7 +31,7 @@ public class Client {
 	 */
 	public Client(String host, int port) {
 		// Initialisierung NettyClient
-		netty = new NettyClient(host, port);
+		this.netty = new NettyClient(this, host, port);
 	}
 	
 	/**
@@ -42,5 +44,13 @@ public class Client {
 	 */
 	public NettyClient getNettyClient() {
 		return netty;
+	}
+	
+	public Console getTerminal() {
+		return console;
+	}
+	
+	public void startConsole() {
+		if(console == null) console = new Console("InformationDisplay", this);
 	}
 }

@@ -1,5 +1,6 @@
 package de.pi.infodisplay.client.netty.handler;
 
+import de.pi.infodisplay.client.Client;
 import de.pi.infodisplay.shared.handler.PacketHandler;
 import de.pi.infodisplay.shared.handler.PacketHandler.NetworkType;
 import io.netty.channel.ChannelInitializer;
@@ -11,9 +12,9 @@ public class ChannelNetworkInitializer extends ChannelInitializer<SocketChannel>
 	private PacketHandler packetHandler;
 	private ClientNetworkHandler networkHandler;
 	
-	public ChannelNetworkInitializer() {
+	public ChannelNetworkInitializer(Client client) {
 		this.packetHandler = new PacketHandler(NetworkType.CLIENT);
-		this.networkHandler = new ClientNetworkHandler();
+		this.networkHandler = new ClientNetworkHandler(client);
 	}
 	
 	@Override
