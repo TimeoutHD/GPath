@@ -32,6 +32,9 @@ public class Client {
 	public Client(String host, int port) {
 		// Initialisierung NettyClient
 		this.netty = new NettyClient(this, host, port);
+		new Thread(netty).start();
+		// Initialisierung GUI-Interface
+		this.console = new Console("InformationDisplay", this);
 	}
 	
 	/**
@@ -48,9 +51,5 @@ public class Client {
 	
 	public Console getTerminal() {
 		return console;
-	}
-	
-	public void startConsole() {
-		if(console == null) console = new Console("InformationDisplay", this);
 	}
 }

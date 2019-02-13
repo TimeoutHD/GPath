@@ -43,9 +43,9 @@ public class Server {
 					@Override
 					protected void initChannel(SocketChannel channel) throws Exception {
 						channel.pipeline()
-							.addLast(handler.getDecoder())
-							.addLast(handler.getEncoder())
-							.addLast(new ServerNetworkHandler());
+							.addLast("decoder", handler.getDecoder())
+							.addLast("encoder", handler.getEncoder())
+							.addLast("handler", new ServerNetworkHandler());
 						Main.LOG.log(Level.INFO, "Connect -> " + channel.remoteAddress().getHostName() + ":" +
 								channel.remoteAddress().getPort());
 					}				
@@ -54,14 +54,6 @@ public class Server {
 				.childOption(ChannelOption.SO_KEEPALIVE, true)
 				.bind(port).sync().channel().closeFuture().sync();
 			Main.LOG.log(Level.INFO, "Server is started successful.");
-//			BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-//			String line;
-//			while((line = reader.readLine().toLowerCase(Locale.getDefault())) != null) {
-//				if("test".equalsIgnoreCase(line)) {
-//					PacketServerOutInfo info = new PacketServerOutInfo("Das ist ein Test");
-//					sendPacket(info);
-//				}
-//			}
 		} catch(Exception e) {
 			Main.LOG.log(Level.SEVERE, "Cannot create Server", e);
 		}

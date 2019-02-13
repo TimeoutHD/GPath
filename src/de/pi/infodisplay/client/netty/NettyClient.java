@@ -13,8 +13,6 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.util.logging.Level;
 
 import de.pi.infodisplay.Main;
@@ -23,17 +21,16 @@ import de.pi.infodisplay.client.netty.handler.ClientNetworkHandler;
 import de.pi.infodisplay.shared.handler.PacketHandler;
 import de.pi.infodisplay.shared.handler.PacketHandler.NetworkType;
 import de.pi.infodisplay.shared.packets.Packet;
-import de.pi.infodisplay.shared.packets.PacketClientOutDisconnect;
 
 /**
- * Diese Klasse ist f�r die Nettyverbindungen mit dem Server verantwortlich.
+ * Diese Klasse ist für die Nettyverbindungen mit dem Server verantwortlich.
  * Sie kümmert sich um das Netzwerkprotokoll und um das Decoden / Encoden der eingehenden und
  * ausgehenden Packets.
  * 
  * @author PI A
  *
  */
-public class NettyClient {
+public class NettyClient implements Runnable {
 	
 	/**
 	 * Dieses Field überprüft, ob der Client ein Unix-Betriebsystem besitzt.
@@ -47,7 +44,7 @@ public class NettyClient {
 	private static final boolean EPOLL = Epoll.isAvailable();
 	
 	/**
-	 * Das ist das Field für den Port des Servers. 
+	 * Das ist das Field f�r den Port des Servers. 
 	 * Hier wird lediglich der Port des Servers zwischengespeichert.
 	 * 
 	 * Auch hier wird das Attribut nur deklariert.
@@ -68,7 +65,7 @@ public class NettyClient {
 	 * 
 	 * Auch hier wird das Attribut nur deklariert.
 	 */
-	private Channel channel;
+	private ChannelFuture channel;
 	
 	/**
 	 * Das ist das Field für den PacketHandler. Diese Klasse handelt das Server-Client 
@@ -79,7 +76,7 @@ public class NettyClient {
 	private PacketHandler handler;
 	
 	private Client parent;
-
+	
 	/**
 	 * Erstellt eine NettyClient mit einer Verbindung zur Adresse, die als
 	 * Parameter angegeben werden.
@@ -91,16 +88,17 @@ public class NettyClient {
 		this.parent = parent;
 		this.port = port;
 		this.host = host;
+	}
+	
+	public void run() {
 		this.handler = new PacketHandler(NetworkType.CLIENT);
-		parent.startConsole();
 		Bootstrap trap = new Bootstrap();
-		EventLoopGroup group = EPOLL ? new EpollEventLoopGroup() : new NioEventLoopGroup();
-
+		EventLoopGroup workerGroup = EPOLL ? new EpollEventLoopGroup() : new NioEventLoopGroup();
 		// EventLoopGroup definieren.
 		try {
 			// Bootstrap erstellen 
 			// Mit LoopGroup linken
-			trap.group(group);
+			trap.group(workerGroup);
 			// Richtige Class angeben
 			trap.channel(EPOLL ? EpollSocketChannel.class : NioSocketChannel.class);
 			trap.option(ChannelOption.SO_KEEPALIVE, true);
@@ -110,36 +108,20 @@ public class NettyClient {
 						@Override
 						protected void initChannel(SocketChannel channel) throws Exception {
 							channel.pipeline()
-								.addLast(handler.getEncoder())
-								.addLast(handler.getDecoder())
-								.addLast(new ClientNetworkHandler(parent));
+								.addLast(handler.getDecoder(), handler.getEncoder(), new ClientNetworkHandler(parent));
 							Main.LOG.log(Level.INFO, "Connected to Server -> " + host);
 						}
 						
 			});
 			Main.LOG.log(Level.INFO, "Server sucessfully started");
-			channel = trap.connect(host, port).sync().channel();
-			
-//			//Console-Input
-//			ChannelFuture lastWriteFuture;
-//			BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
-//			String line;
-//			while(true) {
-//				line = in.readLine();
-//				if("end".equalsIgnoreCase(line)) {
-//					//Disconnect-Command
-//					PacketClientOutDisconnect disconnect = new PacketClientOutDisconnect();
-//					lastWriteFuture = sendPacket(channel, disconnect);
-//					break;
-//				}
-//			}	
-//			
-//			if(lastWriteFuture != null) lastWriteFuture.sync();
+			channel = trap.connect(host, port).sync().channel().closeFuture();
+			channel.syncUninterruptibly();
 		} catch (Exception e) {
 			Main.LOG.log(Level.SEVERE, "Failed to connect", e);
 		} finally {
-			group.shutdownGracefully();
+			workerGroup.shutdownGracefully();
 		}	
+
 	}
 
 	public int getPort() {
@@ -150,7 +132,7 @@ public class NettyClient {
 		return host;
 	}
 
-	public Channel getChannel() {
+	public ChannelFuture getChannelFuture() {
 		return channel;
 	}
 	
@@ -159,11 +141,12 @@ public class NettyClient {
 	}
 	
 	public ChannelFuture sendPacket(Channel channel, Packet packet) {
-		return channel.writeAndFlush(packet);
+		System.out.println("offen: " + channel.isOpen() + ", aktiv: " + channel.isActive() + ", registriert: " + channel.isRegistered() + ", schreibbar: " + channel.isWritable());
+		return channel.writeAndFlush(packet).syncUninterruptibly();
 	}
 	
 	public ChannelFuture sendPacket(Packet packet) {
-		return this.sendPacket(channel, packet);
+		return this.sendPacket(channel.channel(), packet);
 	}
 	
 	public Client getParent() {
