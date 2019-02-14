@@ -108,7 +108,7 @@ public class NettyClient implements Runnable {
 						@Override
 						protected void initChannel(SocketChannel channel) throws Exception {
 							channel.pipeline()
-								.addLast(handler.getDecoder(), handler.getEncoder(), new ClientNetworkHandler(parent));
+								.addLast(handler.getDecoder(), handler.getEncoder(), new ClientNetworkHandler());
 							Main.LOG.log(Level.INFO, "Connected to Server -> " + host);
 						}
 						

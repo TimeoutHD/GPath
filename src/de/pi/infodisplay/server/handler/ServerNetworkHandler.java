@@ -7,6 +7,6 @@ public class ServerNetworkHandler extends ChannelHandlerAdapter {
 
 	@Override
 	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-		System.out.println(msg.getClass().toString());
+		System.out.println(msg.getClass().toString() + " ist die Klasse im ServerHandler");
 	}
 }

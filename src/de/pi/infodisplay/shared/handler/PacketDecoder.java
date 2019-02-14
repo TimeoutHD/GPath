@@ -15,7 +15,7 @@ public abstract class PacketDecoder extends ByteToMessageDecoder {
 			int id = input.readInt();
 			Class<? extends Packet> packetClass = getPacketClassByID(id);
 			if(packetClass != null) {
-				Packet packet = packetClass.getConstructor(int.class).newInstance(id);
+				Packet packet = packetClass.getConstructor().newInstance();
 				packet.read(input);
 			} else throw new IllegalArgumentException("Packet-ID " + id + " is not in use");
 		}
