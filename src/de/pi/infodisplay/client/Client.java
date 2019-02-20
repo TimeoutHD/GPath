@@ -38,7 +38,7 @@ public class Client {
 	}
 	
 	/**
-	 * Diese Methode gibt den NettyClient zur�ck.
+	 * Diese Methode gibt den NettyClient zurück.
 	 * 
 	 * Hierbei ist der NettyClient der Teil des Clients, der sich um die Netzwerkprotokolle
 	 * und die Packets kümmert.
