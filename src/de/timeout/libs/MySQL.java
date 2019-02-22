@@ -7,6 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Level;
@@ -63,6 +64,8 @@ public class MySQL {
 	
 	/**
 	 * Überprüft, ob die Verbindung aufgebaut ist.
+	 * Dabei wird ein leeres Void-Statement an die Datenbank gesendet. 
+	 * Schlägt diese fehl, so wird eine Exception geschmissen, die schlussendlich false zurückgibt.
 	 * @return ist verbunden
 	 */
 	public boolean isConnected() {
@@ -83,30 +86,32 @@ public class MySQL {
 	}
 	
 	/**
+	 * 
 	 * Gibt ein Objekt an einer gewissen Stelle der Tabelle zurück, die im Statement definiert wird.
-	 * Gibt null zurück, wenn ein Fehler auftritt.
+	 * 
 	 * @param preparedStatement Das SQL-Statement
-	 * @param args Die Parameter, falls vorhanden
-	 * @return Das Objekt. Oder null, wenn es ein Fehler gab
+	 * @param args Die Argumente, falls vorhanden
+	 * @return Das gesuchte Object als String
+	 * @throws SQLException Wenn das Statement falsch ist.
 	 */
-	public Object getValue(String preparedStatement, String... args) {
+	public String getValue(String preparedStatement, String... args) throws SQLException {
 		if(!isConnected()) connect();
 		try(PreparedStatement ps = convertStatement(preparedStatement, args)) {
-			Object ans = null;
+			String ans = null;
 			try(ResultSet rs = ps.executeQuery()) {
-				while(rs.next()) ans = rs.getObject(getDistinct(preparedStatement));
+				while(rs.next()) ans = rs.getString(getDistinct(preparedStatement));
 			}
 			return ans;
 		} catch(SQLException e) {
-			Logger.getGlobal().log(Level.SEVERE, SQL_ERROR, e);
+			throw new IllegalArgumentException(SQL_ERROR, e);
 		}
-		return null;
 	}
 	
 	/**
 	 * Gibt den gesuchten Spaltennamen zurück
 	 * @param preparedStatement Das Statement
 	 * @return der gesuchte Spaltenname
+	 * @throws SQLException Wenn das Statement falsch ist.
 	 */
 	private String getDistinct(String preparedStatement) {
 		String[] split = preparedStatement.split(" ");
@@ -134,7 +139,7 @@ public class MySQL {
 		PreparedStatement ps = connection.prepareStatement(statement);
 		int index = 0;
 		for(int i = 0; i < args.length; i++) {
-			ps.setObject(index +1, args[index]);
+			ps.setString(index +1, args[index]);
 			index++;
 		}
 		return ps;
@@ -155,45 +160,20 @@ public class MySQL {
 	}
 	
 	/**
-	 * Der MySQL-Update Befehl. Damit können Werte aktualisiert (überschrieben) werden.
-	 * @param preparedStatement Das Statement
-	 * @param args Die Argumente (optional)
+	 * Diese Methode führt ein Void-Statement der Sprache SQL aus. 
+	 * Void-Statements sind Befehle, die keinen Rückgabewert besitzen. (Beispiel: INSERT, UPDATE, DELETE)
+	 * Sollte das Statement kein Void-Statement sein, so wird nichts passieren.
+	 * @param preparedStatement
+	 * @param args
 	 */
-	public void update(String preparedStatement, String... args) {
+	public void executeVoidStatement(String preparedStatement, String... args) throws SQLException {
 		if(!isConnected())connect();
-		try(PreparedStatement ps = convertStatement(preparedStatement, args)) {
-			ps.executeUpdate();
-		} catch(SQLException e) {
-			Logger.getGlobal().log(Level.SEVERE, SQL_ERROR, e);			
-		}
-	}
-	
-	/**
-	 * Der MySQL-Delete Befehl. Damit kann ein Wert in der Tabelle gelöscht werden.
-	 * @param preparedStatement Das Statement
-	 * @param args Die Argumente (optional)
-	 */
-	public void delete(String preparedStatement, String... args) {
-		if(!isConnected()) connect();
-		try(PreparedStatement ps = convertStatement(preparedStatement, args)) {
-			ps.execute();
-		} catch(SQLException e) {
-			Logger.getGlobal().log(Level.SEVERE, SQL_ERROR, e);
-		}
-	}
-	
-	/**
-	 * Der MySQL-Insert Befehl. Damit kann eine neue Spalte in der Tabelle erstellt werden,
-	 * die Werte aus dem Statement übernimmt
-	 * @param preparedStatement Das Statement
-	 * @param args Die Argumente (optional).
-	 */
-	public void insert(String preparedStatement, String... args) {
-		if(!isConnected())connect();
-		try(PreparedStatement ps = convertStatement(preparedStatement, args)) {
-			ps.execute();
-		} catch (SQLException e) {
-			Logger.getGlobal().log(Level.SEVERE, SQL_ERROR, e);
+		if(!"SELECT".startsWith(preparedStatement.toUpperCase(Locale.getDefault()))) {
+			try(PreparedStatement ps = convertStatement(preparedStatement, args)) {
+				ps.executeUpdate();
+			} catch(SQLException e) {
+				throw new IllegalArgumentException(SQL_ERROR, e);
+			}
 		}
 	}
 	
@@ -204,24 +184,25 @@ public class MySQL {
 	 * @param preparedStatement Das Statement
 	 * @param args Die Argumente des Statements (optional)
 	 * @return Das Ergebnis
+	 * @throws SQLException Wenn das Statement falsch ist.
 	 */
-	public boolean hasResult(String preparedStatement, String... args) {
+	public boolean hasResult(String preparedStatement, String... args) throws SQLException {
 		if(!isConnected()) connect();
 		try(ResultSet rs = convertStatement(preparedStatement, args).executeQuery()) {
 			return rs.next();
 		} catch(SQLException e) {
-			Logger.getGlobal().log(Level.SEVERE, SQL_ERROR, e);
+			throw new IllegalArgumentException(SQL_ERROR, e);
 		}
-		return false;
 	}
 	
 	/**
-	 * Gibt die gesamte Tabelle als zweidimensionalen String Array aus.
+	 * Gibt die gesamte Tabelle als zweidimensionalen String Array aus. Sollte das Statement nicht falsch sein, wird ein
+	 * leerer zweidimensionaler String Array zurückgegeben
 	 * @param preparedStatement das Statement
 	 * @param args die Argumente (optional)
 	 * @return die Tabelle als String[][]
 	 */
-	public String[][] executeStatement(String preparedStatement, String... args) {
+	public String[][] executeStatement(String preparedStatement, String... args) throws SQLException {
 		if(!isConnected()) connect();
 		try(ResultSet rs = convertStatement(preparedStatement, args).executeQuery()) {
 			int columnCount = rs.getMetaData().getColumnCount();
