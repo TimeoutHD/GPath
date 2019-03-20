@@ -1,10 +1,9 @@
 package de.pi.infodisplay.shared.security;
 
-import java.util.Base64;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 public class User {
-	
-	private static final Base64.Encoder encoder = Base64.getEncoder();
 	
 	private int id;
 	private String name;
@@ -13,16 +12,16 @@ public class User {
 	public User(int id, String name, String password) {
 		this.id = id;
 		this.name = name;
-		this.password = encoder.encodeToString(password.getBytes());
+		this.password = User.encode(password);
 	}
 	
 	public boolean compare(String password) {
-		return this.password == encoder.encodeToString(password.getBytes());
+		return this.password.equals(User.encode(password));
 	}
 	
 	public boolean setPassword(String oldpw, String newpw) {
 		if(compare(oldpw)) {
-			this.password = encoder.encodeToString(newpw.getBytes());
+			this.password = User.encode(newpw);
 			return true;
 		}
 		return false;
@@ -34,5 +33,22 @@ public class User {
 
 	public String getName() {
 		return this.name;
+	}
+	
+	private static String encode(String pw) {
+		try {
+			MessageDigest md = MessageDigest.getInstance("SHA-256");
+			md.update(pw.getBytes());
+			byte[] bytes = md.digest();
+	        StringBuilder sb = new StringBuilder();
+	        for(int i=0; i< bytes.length ;i++)
+	        {
+	        	sb.append(Integer.toString((bytes[i] & 0xff) + 0x100, 16).substring(1));
+	        }
+	        return sb.toString();
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 }
