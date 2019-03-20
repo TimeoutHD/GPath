@@ -7,6 +7,7 @@ import de.pi.infodisplay.server.handler.ServerNetworkHandler;
 import de.pi.infodisplay.shared.handler.PacketHandler;
 import de.pi.infodisplay.shared.handler.PacketHandler.NetworkType;
 import de.pi.infodisplay.shared.packets.Packet;
+import de.timeout.libs.MySQL;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -28,10 +29,12 @@ public class Server {
 	private ChannelFuture channel;
 	
 	private PacketHandler handler;
-
+	private MySQL sql;
+	
 	public Server(int port) {
 		this.port = port;
 		this.handler = new PacketHandler(NetworkType.SERVER);
+		this.sql = new MySQL("localhost", 3304, "database", "pi", "piA");
 		
 		try(EventLoopGroup bossGroup = EPOLL ? new EpollEventLoopGroup() : new NioEventLoopGroup(); 
 				EventLoopGroup workerGroup = EPOLL ? new EpollEventLoopGroup() : new NioEventLoopGroup()) {		
