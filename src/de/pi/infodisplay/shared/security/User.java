@@ -64,7 +64,7 @@ public class User {
 		return this.name;
 	}
 	
-	private static String encode(String pw) {
+	public static String encode(String pw) {
 		try {
 			MessageDigest md = MessageDigest.getInstance("SHA-256");
 			md.update(pw.getBytes());
