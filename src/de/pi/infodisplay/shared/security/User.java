@@ -45,11 +45,11 @@ public class User {
 	}
 	
 	public boolean compare(String password) {
-		return this.password.equals(User.encode(password));
+		return this.password.equals(password);
 	}
 	
 	public boolean setPassword(String oldpw, String newpw) {
-		if(compare(oldpw)) {
+		if(compare(User.encode(oldpw))) {
 			this.password = User.encode(newpw);
 			return true;
 		}
