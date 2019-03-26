@@ -32,9 +32,16 @@ public class Client {
 	public Client(String host, int port) {
 		// Initialisierung NettyClient
 		this.netty = new NettyClient(this, host, port);
-		new Thread(netty).start();
+		runNettyClient();
 		// Initialisierung GUI-Interface
 		this.console = new Console("InformationDisplay", this);
+	}
+	
+	/**
+	 * Diese Methode startet den NettyClient in einem parallelen Thread.
+	 */
+	public void runNettyClient() {
+		new Thread(netty).start();
 	}
 	
 	/**

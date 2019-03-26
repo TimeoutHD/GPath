@@ -21,21 +21,71 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 
+/**
+ * Diese Klasse ist für die Nettyverbindung mit allen Clients verantworlich.
+ * Sie kümmert sich um das Netzwerkprotokoll mit anderen Clients und steuert alle Handler,
+ * die für den Server zur Verfügung gestellt wird
+ * 
+ * @author PI A
+ *
+ */
+@SuppressWarnings("deprecation")
 public class Server {
 
+	/**
+	 * Dieses Field überprüft, ob der Server ein Linux-Betriebsystem besitzt.
+	 * Je nachdem, welches Betriebsystem benutzt wird, muss abgewägt werden, welches Protokoll benutzt werden muss.
+	 * Linux benutzt EPOLL, während Windows auf NIO vertraut.
+	 * 
+	 * Die Methode {@code Epoll#isAvailable()} überprüft auf EPOLL und gibt den Wahrheitswert zurück.
+	 * Diese wird als Konstante gespeichert, da sich das Protokoll nicht ohne ein neues Betriebsystem
+	 * zu installieren, nicht ändert
+	 */
 	public static final boolean EPOLL = Epoll.isAvailable();
 	
+	/**
+	 * Das ist das Field für der Port, unterdem der Server erreichbar ist.
+	 * Hier wird lediglich der Port des Serverts zwischengespeichert.
+	 * 
+	 * Auch hier wird das Attribut nur deklariert.
+	 */
 	private int port;
+	
+	/**
+	 * Das ist das Field des benutzten Netzwerk-Channels. Über diesen Channel werden
+	 * Packete und andere Informationen zum Server gesendet und wieder empfangen.
+	 * 
+	 * Auch hier wird das Attribut nur deklariert.
+	 */
 	private ChannelFuture channel;
 	
+	/**
+	 * Das ist das Field für den PacketHandler. Diese Klasse handelt das Server-Client Netzwerk
+	 * 
+	 * Auch hier wird das Attribut nur deklariert.
+	 */
 	private PacketHandler handler;
-	private MySQL sql;
 	
+	/**
+	 * Das ist das Field für die benutzte MySQL-Datenbank, wo der Server die benötigten Informationen abspeichert.
+	 * Jegliche Benutzerdaten und Speicheradressen der Informationen werden hier zwischengespeichert.
+	 * 
+	 * Auch hier wird das Attribut nur deklariert.
+	 */
+	private MySQL mysql;
+	
+	/**
+	 * Erstellt einen NettyServer, der den angegebenen Port besetzt.
+	 * Das Netzwerk arbeitet mit TCP und ist durchgehend abgesichert.
+	 * 
+	 * @param port der Port, den der Server besetzt.
+	 */
 	public Server(int port) {
 		this.port = port;
 		this.handler = new PacketHandler(NetworkType.SERVER);
-		this.sql = new MySQL("localhost", 3304, "database", "pi", "piA");
+		this.mysql = new MySQL("localhost", 3304, "InformationDisplay", "pi", "piA");
 		
+		// Bootstrap für den Server
 		try(EventLoopGroup bossGroup = EPOLL ? new EpollEventLoopGroup() : new NioEventLoopGroup(); 
 				EventLoopGroup workerGroup = EPOLL ? new EpollEventLoopGroup() : new NioEventLoopGroup()) {		
 			channel = new ServerBootstrap()
@@ -45,6 +95,7 @@ public class Server {
 			    
 					@Override
 					protected void initChannel(SocketChannel channel) throws Exception {
+						// Handler initialisieren
 						channel.pipeline()
 							.addLast("decoder", handler.getDecoder())
 							.addLast("encoder", handler.getEncoder())
@@ -53,8 +104,10 @@ public class Server {
 								channel.remoteAddress().getPort());
 					}				
 				})
+				// Optionen festlegen.
 				.option(ChannelOption.SO_BACKLOG, 128)
 				.childOption(ChannelOption.SO_KEEPALIVE, true)
+				// TCP aktivieren und Server starten
 				.bind(port).sync().channel().closeFuture().sync();
 			Main.LOG.log(Level.INFO, "Server is started successful.");
 		} catch(Exception e) {
@@ -62,6 +115,10 @@ public class Server {
 		}
 	}
 
+	/**
+	 * 
+	 * @return
+	 */
 	public int getPort() {
 		return port;
 	}

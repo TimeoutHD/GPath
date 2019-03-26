@@ -3,6 +3,7 @@ package de.pi.infodisplay.server.handler;
 import io.netty.channel.ChannelHandlerAdapter;
 import io.netty.channel.ChannelHandlerContext;
 
+@Deprecated
 public class ServerNetworkHandler extends ChannelHandlerAdapter {
 
 	@Override

@@ -13,28 +13,22 @@ public class PacketServerOutInfo extends Packet {
 
 	public PacketServerOutInfo() {
 		super(0);
-		this.msg = "";
 	}
 	
 	public PacketServerOutInfo(String msg) {
-		super(0);
+		this();
 		this.msg = msg;
 	}
 
 	@Override
 	public void read(ByteBuf byteBuf) throws IOException {
-		
-		byte[] bytes = new byte[byteBuf.readableBytes()];
-		
-		byteBuf.readBytes(bytes);
-		this.msg = String.valueOf(bytes);
-		
+		this.msg = Packet.decodeString(byteBuf);
 		Main.LOG.log(Level.INFO, this.msg);
 	}
 
 	@Override
 	public void write(ByteBuf byteBuf) throws IOException {
-		byteBuf.writeBytes(this.msg.getBytes());
+		Packet.encodeString(byteBuf, msg);
 	}
 
 	public String getMessage() {

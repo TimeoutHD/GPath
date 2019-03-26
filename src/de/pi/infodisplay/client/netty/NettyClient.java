@@ -30,10 +30,11 @@ import de.pi.infodisplay.shared.packets.Packet;
  * @author PI A
  *
  */
+@SuppressWarnings("deprecation")
 public class NettyClient implements Runnable {
 	
 	/**
-	 * Dieses Field überprüft, ob der Client ein Unix-Betriebsystem besitzt.
+	 * Dieses Field überprüft, ob der Client ein Linux-Betriebsystem besitzt.
 	 * Je nachdem, welches Betriebsystem benutzt wird, muss abgewägt werden, welches Protokoll benutzt werden muss.
 	 * Unix benutzt EPOLL während Windows auf NIO vertraut.
 	 * 
@@ -44,7 +45,7 @@ public class NettyClient implements Runnable {
 	private static final boolean EPOLL = Epoll.isAvailable();
 	
 	/**
-	 * Das ist das Field f�r den Port des Servers. 
+	 * Das ist das Field für den Port des Servers. 
 	 * Hier wird lediglich der Port des Servers zwischengespeichert.
 	 * 
 	 * Auch hier wird das Attribut nur deklariert.
@@ -52,7 +53,7 @@ public class NettyClient implements Runnable {
 	private int port;
 	
 	/**
-	 * Das ist das Field f�r die IPv4-Adresse des Servers.
+	 * Das ist das Field für die IPv4-Adresse des Servers.
 	 * Hier wird die IPv4-Adresse zwischengespeichert.
 	 * 
 	 * Auch hier wird das Attribut nur deklariert.
@@ -124,14 +125,26 @@ public class NettyClient implements Runnable {
 
 	}
 
+	/**
+	 * Gibt den Port des Server zurück andem eine Anfrage versendet wurde.
+	 * @return den Port des Servers
+	 */
 	public int getPort() {
 		return port;
 	}
 
-	public String getHost() {
+	/**
+	 * Gibt die Host-Adresse des Servers zurück. Das ist eine IPv4-Addresse
+	 * @return die IPv4-Adresse des Servers.
+	 */
+	public String getHostAddress() {
 		return host;
 	}
 
+	/**
+	 * Gibt den Netzwerk-Channel des Servers zurück.
+	 * @return
+	 */
 	public ChannelFuture getChannelFuture() {
 		return channel;
 	}
@@ -141,7 +154,6 @@ public class NettyClient implements Runnable {
 	}
 	
 	public ChannelFuture sendPacket(Channel channel, Packet packet) {
-		System.out.println("offen: " + channel.isOpen() + ", aktiv: " + channel.isActive() + ", registriert: " + channel.isRegistered() + ", schreibbar: " + channel.isWritable());
 		return channel.writeAndFlush(packet).syncUninterruptibly();
 	}
 	
