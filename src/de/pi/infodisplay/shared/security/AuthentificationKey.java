@@ -1,4 +1,4 @@
-package de.pi.infodisplay.security;
+package de.pi.infodisplay.shared.security;
 
 import java.util.Base64;
 import java.util.UUID;
