@@ -3,10 +3,7 @@ package de.pi.infodisplay.server;
 import java.util.logging.Level;
 
 import de.pi.infodisplay.Main;
-import de.pi.infodisplay.server.handler.ServerNetworkHandler;
-import de.pi.infodisplay.shared.handler.PacketHandler;
-import de.pi.infodisplay.shared.handler.PacketHandler.NetworkType;
-import de.pi.infodisplay.shared.packets.Packet;
+import de.pi.infodisplay.server.security.ClientUser;
 import de.timeout.libs.MySQL;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
@@ -29,7 +26,6 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
  * @author PI A
  *
  */
-@SuppressWarnings("deprecation")
 public class Server {
 
 	/**
@@ -57,14 +53,9 @@ public class Server {
 	 * 
 	 * Auch hier wird das Attribut nur deklariert.
 	 */
-	private ChannelFuture channel;
+	private ChannelFuture serverChannel;
 	
-	/**
-	 * Das ist das Field für den PacketHandler. Diese Klasse handelt das Server-Client Netzwerk
-	 * 
-	 * Auch hier wird das Attribut nur deklariert.
-	 */
-	private PacketHandler handler;
+	private ClientPool clientManager;
 	
 	/**
 	 * Das ist das Field für die benutzte MySQL-Datenbank, wo der Server die benötigten Informationen abspeichert.
@@ -82,24 +73,24 @@ public class Server {
 	 */
 	public Server(int port) {
 		this.port = port;
-		this.handler = new PacketHandler(NetworkType.SERVER);
 		this.mysql = new MySQL("localhost", 3304, "InformationDisplay", "pi", "piA");
 		
 		// Bootstrap für den Server
 		try(EventLoopGroup bossGroup = EPOLL ? new EpollEventLoopGroup() : new NioEventLoopGroup(); 
 				EventLoopGroup workerGroup = EPOLL ? new EpollEventLoopGroup() : new NioEventLoopGroup()) {		
-			channel = new ServerBootstrap()
+			serverChannel = new ServerBootstrap()
 				.group(bossGroup, workerGroup)
 				.channel(EPOLL ? EpollServerSocketChannel.class : NioServerSocketChannel.class)
 				.childHandler(new ChannelInitializer<SocketChannel>() {
 			    
 					@Override
 					protected void initChannel(SocketChannel channel) throws Exception {
+						ClientUser user = clientManager.connect(channel);
+						
 						// Handler initialisieren
-						channel.pipeline()
-							.addLast("decoder", handler.getDecoder())
-							.addLast("encoder", handler.getEncoder())
-							.addLast("handler", new ServerNetworkHandler());
+						channel.pipeline().addLast(
+								user.getPacketHandler().getDecoder(),
+								user.getPacketHandler().getEncoder());
 						Main.LOG.log(Level.INFO, "Connect -> " + channel.remoteAddress().getHostName() + ":" +
 								channel.remoteAddress().getPort());
 					}				
@@ -108,8 +99,10 @@ public class Server {
 				.option(ChannelOption.SO_BACKLOG, 128)
 				.childOption(ChannelOption.SO_KEEPALIVE, true)
 				// TCP aktivieren und Server starten
-				.bind(port).sync().channel().closeFuture().sync();
+				.bind(port).sync().channel().closeFuture();
+			clientManager = new ClientPool(serverChannel);
 			Main.LOG.log(Level.INFO, "Server is started successful.");
+			serverChannel.sync();
 		} catch(Exception e) {
 			Main.LOG.log(Level.SEVERE, "Cannot create Server", e);
 		}
@@ -123,15 +116,11 @@ public class Server {
 		return port;
 	}
 
-	public ChannelFuture getChannel() {
-		return channel;
-	}
-
-	public PacketHandler getHandler() {
-		return handler;
+	public ChannelFuture getServerChannel() {
+		return serverChannel;
 	}
 	
-	public void sendPacket(Packet packet) {
-		this.channel.channel().writeAndFlush(packet, this.channel.channel().voidPromise());
+	public MySQL getMySQL() {
+		return mysql;
 	}
 }
