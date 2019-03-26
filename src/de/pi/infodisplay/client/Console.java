@@ -17,6 +17,7 @@ import de.pi.infodisplay.shared.packets.Packet;
 import de.pi.infodisplay.shared.packets.PacketClientOutDisconnect;
 import de.pi.infodisplay.shared.packets.PacketClientOutInfo;
 
+@Deprecated
 public class Console extends JFrame {
 
 	private static final long serialVersionUID = -7727966330078490710L;

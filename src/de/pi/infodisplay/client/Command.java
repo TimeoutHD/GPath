@@ -1,5 +1,6 @@
 package de.pi.infodisplay.client;
 
+@Deprecated
 public enum Command {
 	CONNECT("connect", "cnt"),
 	DISCONNECT("disconnect", "dcnt"),

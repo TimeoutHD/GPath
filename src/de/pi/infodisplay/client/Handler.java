@@ -4,6 +4,7 @@ package de.pi.infodisplay.client;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
+@Deprecated
 public class Handler implements KeyListener {
 	
 	private Console mother;

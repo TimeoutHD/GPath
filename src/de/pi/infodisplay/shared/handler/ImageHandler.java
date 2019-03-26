@@ -6,6 +6,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Base64;
 import java.util.UUID;
+import java.util.logging.Level;
+
+import de.pi.infodisplay.Main;
 
 public class ImageHandler {
 	
@@ -27,10 +30,12 @@ public class ImageHandler {
 		public ConvertedImage(File imageFile) {
 			try(FileInputStream imageinFile = new FileInputStream(imageFile)) {
 				byte[] filedata = new byte[(int) imageFile.length()];
-				imageinFile.read(filedata);
+				while(imageinFile.read(filedata) > 0) {
+					// TODO: Hier wird Fortschritt angezeigt.
+				}
 				base64Image = encoder.encodeToString(filedata);
 			} catch (IOException e) {
-				e.printStackTrace();
+				Main.LOG.log(Level.SEVERE, "Cannot Convert File to String", e);
 			}
 		}
 		
@@ -40,7 +45,7 @@ public class ImageHandler {
 				byte[] imageByteArray = decoder.decode(base64Image);
 				imageOutFile.write(imageByteArray);
 			} catch (IOException e) {
-				e.printStackTrace();
+				Main.LOG.log(Level.SEVERE, "Cannot decode String to File", e);
 			}
 			return image;
 		}
