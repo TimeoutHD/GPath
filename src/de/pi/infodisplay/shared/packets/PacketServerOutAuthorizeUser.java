@@ -3,7 +3,7 @@ package de.pi.infodisplay.shared.packets;
 import java.io.IOException;
 import java.util.UUID;
 
-import de.pi.infodisplay.shared.security.AuthentificationKey;
+import de.pi.infodisplay.security.AuthentificationKey;
 import io.netty.buffer.ByteBuf;
 
 public class PacketServerOutAuthorizeUser extends Packet {
