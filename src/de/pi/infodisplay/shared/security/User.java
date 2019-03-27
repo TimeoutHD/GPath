@@ -63,7 +63,7 @@ public class User {
 	
 	/**
 	 * Überprüft, ob der User in der Datenbank existiert
-	 * @return Existiert der User in der Datenbank
+	 * @return Existiert der User in der Datenbank?
 	 * @throws SQLException
 	 */
 	public boolean exists() throws SQLException{
@@ -83,7 +83,7 @@ public class User {
 	 * Setzt ein neues Passwort
 	 * @param oldpw Altes Passwort
 	 * @param newpw Neues Passwort
-	 * @return Wahr das angegebene Passwort richtig?
+	 * @return War das angegebene Passwort richtig?
 	 */
 	public boolean setPassword(String oldpw, String newpw) {
 		if(compare(User.encode(oldpw))) {
