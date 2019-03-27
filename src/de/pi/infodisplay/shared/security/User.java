@@ -62,7 +62,7 @@ public class User {
 	
 	/**
 	 * Überprüft, ob der User in der Datenbank existiert
-	 * @return Existiert der User in der Datenbank
+	 * @return Existiert der User in der Datenbank?
 	 * @throws SQLException
 	 */
 	public boolean exists() throws SQLException{
