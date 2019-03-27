@@ -2,8 +2,8 @@ package de.pi.infodisplay.server.security;
 
 import java.security.InvalidKeyException;
 
-import de.pi.infodisplay.security.AuthentificationKey;
 import de.pi.infodisplay.shared.handler.PacketHandler;
+import de.pi.infodisplay.shared.security.AuthentificationKey;
 import de.pi.infodisplay.shared.security.User;
 import io.netty.channel.socket.SocketChannel;
 

@@ -8,8 +8,8 @@ import java.util.List;
 import java.util.logging.Level;
 
 import de.pi.infodisplay.Main;
-import de.pi.infodisplay.security.AuthentificationKey;
 import de.pi.infodisplay.server.security.ClientUser;
+import de.pi.infodisplay.shared.security.AuthentificationKey;
 import de.pi.infodisplay.shared.security.User;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.socket.SocketChannel;
