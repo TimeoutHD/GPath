@@ -7,12 +7,36 @@ import de.pi.infodisplay.shared.security.AuthentificationKey;
 import de.pi.infodisplay.shared.security.User;
 import io.netty.channel.socket.SocketChannel;
 
+/**
+ * Diese Klasse ist die Userinstanz für den Server. Sie vebindet die eigenen Coder, den AuthentificationKey und den User,
+ * mitdem diese Verbindung angemeldet ist.
+ * 
+ * @author PI A
+ *
+ */
 public class ClientUser {
 
+	/**
+	 * Dieses Field ist der Channel zwischen Client und Server.
+	 * Über den Channel werden die Pakete hin und her versendet.
+	 */
 	private SocketChannel channel;
+	
+	/**
+	 * Dieses Field ist der angemeldete User. Um Änderungen am Server vorzunehmen, muss man angemeldet sein.
+	 */
 	private User loggedUser;
+	
+	/**
+	 * Dieses Field ist der Sicherheitsschlüssel des ClientUsers.
+	 * Der Sicherheitsschlüssel ist eimmalig und sichert die Client-Server Verbindung ab.
+	 */
 	private AuthentificationKey secutityKey;
 	
+	/**
+	 * Dieses Field ist der clienteigene PacketHandler.
+	 * Da jeder Handler nur für eine Verbindung braucht. 
+	 */
 	private PacketHandler packetHandler;
 	
 	public ClientUser(SocketChannel channel, User user, AuthentificationKey key) {

@@ -1,5 +1,6 @@
 package de.timeout.libs;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.logging.Level;
@@ -22,6 +23,17 @@ public class Reflections {
 			Logger.getGlobal().log(Level.WARNING, "Could not find Field " + name + " in Class " + clazz.getName(), e);
 		}
 	return null;
+	}
+	
+	public static Constructor<?> getConstructor(Class<?> clazz, Class<?>... params) {
+		try {
+			Constructor<?> constructor = clazz.getConstructor(params);
+			if(Modifier.isPrivate(constructor.getModifiers())) modifiers.set(constructor, constructor.getModifiers() & ~Modifier.PRIVATE);
+			return constructor;
+		} catch (NoSuchMethodException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
+			Logger.getGlobal().log(Level.SEVERE, "Constructor with parameters does not exist", e);
+		}
+		return null;
 	}
 	
 	public static Field getField(Object obj, String name) {

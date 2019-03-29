@@ -10,7 +10,7 @@ public abstract class Packet {
 	
 	protected int id; 
 	
-	public Packet(int id) {
+	protected Packet(int id) {
 		this.id = id;
 	}
 	

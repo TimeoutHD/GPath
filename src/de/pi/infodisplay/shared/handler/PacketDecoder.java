@@ -3,6 +3,7 @@ package de.pi.infodisplay.shared.handler;
 import java.util.List;
 
 import de.pi.infodisplay.shared.packets.Packet;
+import de.timeout.libs.Reflections;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
@@ -15,7 +16,7 @@ public abstract class PacketDecoder extends ByteToMessageDecoder {
 			int id = input.readInt();
 			Class<? extends Packet> packetClass = getPacketClassByID(id);
 			if(packetClass != null) {
-				Packet packet = packetClass.getConstructor().newInstance();
+				Packet packet = (Packet) Reflections.getConstructor(packetClass).newInstance();
 				packet.read(input);
 			} else throw new IllegalArgumentException("Packet-ID " + id + " is not in use");
 		}

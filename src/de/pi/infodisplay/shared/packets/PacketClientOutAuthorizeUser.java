@@ -9,7 +9,7 @@ public class PacketClientOutAuthorizeUser extends Packet {
 	private String username;
 	private String password;
 	
-	public PacketClientOutAuthorizeUser() {
+	private PacketClientOutAuthorizeUser() {
 		super(101);
 	}
 	
