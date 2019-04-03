@@ -1,5 +1,6 @@
 package de.pi.infodisplay.client;
 
+import de.pi.infodisplay.client.gui.MainWindow;
 import de.pi.infodisplay.client.netty.NettyClient;
 
 /**
@@ -18,7 +19,7 @@ public class Client {
 	 */
 	private NettyClient netty;
 	
-	private Console console;
+	private MainWindow gui;
 	
 	/**
 	 * Das ist der Constructor für die Clientklasse.
@@ -34,7 +35,7 @@ public class Client {
 		this.netty = new NettyClient(this, host, port);
 		runNettyClient();
 		// Initialisierung GUI-Interface
-		this.console = new Console("InformationDisplay", this);
+		this.gui = new MainWindow(this);
 	}
 	
 	/**
@@ -56,7 +57,7 @@ public class Client {
 		return netty;
 	}
 	
-	public Console getTerminal() {
-		return console;
+	public MainWindow getMainWindowGUI() {
+		return gui;
 	}
 }
