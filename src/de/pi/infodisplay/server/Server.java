@@ -1,5 +1,6 @@
 package de.pi.infodisplay.server;
 
+import java.sql.SQLException;
 import java.util.logging.Level;
 
 import de.pi.infodisplay.Main;
@@ -74,10 +75,11 @@ public class Server {
 	public Server(int port) {
 		this.port = port;
 		this.mysql = new MySQL("localhost", 3304, "InformationDisplay", "pi", "piA");
-		
 		// Bootstrap für den Server
 		try(EventLoopGroup bossGroup = EPOLL ? new EpollEventLoopGroup() : new NioEventLoopGroup(); 
-				EventLoopGroup workerGroup = EPOLL ? new EpollEventLoopGroup() : new NioEventLoopGroup()) {		
+				EventLoopGroup workerGroup = EPOLL ? new EpollEventLoopGroup() : new NioEventLoopGroup()) {	
+			// Neue Datenbanken sehen.
+			initializeDatabases();
 			serverChannel = new ServerBootstrap()
 				.group(bossGroup, workerGroup)
 				.channel(EPOLL ? EpollServerSocketChannel.class : NioServerSocketChannel.class)
@@ -122,5 +124,12 @@ public class Server {
 	
 	public MySQL getMySQL() {
 		return mysql;
+	}
+	
+	private void initializeDatabases() throws SQLException {
+		if(mysql.isConnected()) {
+			mysql.executeVoidStatement("CREATE TABLE IF NOT EXISTS Information(id INT(4) PRIMARY KEY, creatorID VARCHAR(36), path TEXT)");
+			mysql.executeVoidStatement("CREATE TABLE IF NOT EXISTS User(id VARCHAR(36) PRIMARY KEY, name VARCHAR(100), password TEXT, admin TINYINT(1))");
+		}
 	}
 }
