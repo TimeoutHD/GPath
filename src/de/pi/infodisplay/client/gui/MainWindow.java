@@ -11,6 +11,8 @@ import de.pi.infodisplay.client.Client;
 import java.awt.FlowLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import javax.swing.JTextPane;
+import java.awt.TextArea;
 
 public class MainWindow {
 
@@ -79,7 +81,11 @@ public class MainWindow {
 		
 		JMenuItem mntmEinstellungen = new JMenuItem("Einstellungen");
 		mnBearbeiten.add(mntmEinstellungen);
-		frmInformationdisplay.getContentPane().setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
+		frmInformationdisplay.getContentPane().setLayout(null);
+		
+		TextArea infoBoard = new TextArea();
+		infoBoard.setBounds(0, 0, 662, 658);
+		frmInformationdisplay.getContentPane().add(infoBoard);
 	}
 
 }

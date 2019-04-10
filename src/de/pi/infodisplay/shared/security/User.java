@@ -15,6 +15,7 @@ public class User {
 	private UUID id;
 	private String name;
 	private String password;
+	private boolean isAdmin;
 	
 	public User(UUID id, String name, String password, MySQL db, boolean isEncoded) {
 		this.id = id;
@@ -33,9 +34,13 @@ public class User {
 		return null;
 	}
 	
+	public static void setAdmin(User excutor, String username, boolean admin) {
+		
+	}
+	
 	public void saveInDatabase() {
 			try {
-				if(!exists()) mysql.executeVoidStatement("INSERT INTO users(uuid, name, password) VALUES(?,?,?)", id.toString(), name, password);
+				if(!exists()) mysql.executeVoidStatement("INSERT INTO users(id, name, password, admin) VALUES(?,?,?)", id.toString(), name, password);
 				else mysql.executeVoidStatement("UPDATE name = ?, password = ? FROM users WHERE uuid = ?", name, password, id.toString());
 			} catch (SQLException e) {
 				Main.LOG.log(Level.SEVERE, "Cannot result SQL-Statement", e);
