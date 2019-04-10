@@ -29,7 +29,7 @@ public class Console extends JFrame {
 	private Handler handler;
 	
 	private Client parent;
-
+   
 	public Console(String title, Client parent) { 
 		super(title);
 		handler = new Handler(this);

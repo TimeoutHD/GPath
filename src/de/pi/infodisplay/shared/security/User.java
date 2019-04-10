@@ -16,6 +16,14 @@ public class User {
 	private String name;
 	private String password;
 	
+	/**
+	 * Erzeugt einen neuen User
+	 * @param id Die ID des Users
+	 * @param name Der Benutzername des Users
+	 * @param password Das Anmeldepasswort des Users 
+	 * @param db Die Datenbank, wo die User gespeichert werden
+	 * @param isEncoded Ist das Passwort bereits encodiert ?
+	 */
 	public User(UUID id, String name, String password, MySQL db, boolean isEncoded) {
 		this.id = id;
 		this.name = name;
@@ -23,6 +31,12 @@ public class User {
 		this.mysql = db;
 	}
 	
+	/**
+	 * Gibt ein Userobjekt mit dem eingegebenen Namen aus der Datenbank zurück
+	 * @param db Die Datenbank, wo die User gespeichert werden
+	 * @param name Der Benutzername des Users
+	 * @return Gibt neuen User aus
+	 */
 	public static User getFromDataBaseByName(MySQL db, String name) {
 		try {
 			String[][] table = db.executeStatement("SELECT * FROM users WHERE name = ?", name);
@@ -33,6 +47,9 @@ public class User {
 		return null;
 	}
 	
+	/**
+	 * 
+	 */
 	public void saveInDatabase() {
 			try {
 				if(!exists()) mysql.executeVoidStatement("INSERT INTO users(uuid, name, password) VALUES(?,?,?)", id.toString(), name, password);
