@@ -1,9 +1,13 @@
 package de.pi.infodisplay.shared.handler;
 
+import de.pi.infodisplay.client.netty.NettyClient;
 import de.pi.infodisplay.client.netty.handler.PacketClientDecoder;
 import de.pi.infodisplay.client.netty.handler.PacketClientEncoder;
+import de.pi.infodisplay.server.Server;
 import de.pi.infodisplay.server.handler.PacketServerDecoder;
 import de.pi.infodisplay.server.handler.PacketServerEncoder;
+import de.pi.infodisplay.server.security.ClientUser;
+import de.pi.infodisplay.shared.security.Operator;
 
 /**
  * Die Klasse PacketHandler ist ein Konstrukt, dass den Decoder und Encoder
@@ -38,13 +42,16 @@ public class PacketHandler {
 	 * Dieses Field ist der Standardkonstruktor dieser Klasse.
 	 * Hier werden die oben genannten Fields initialisiert.
 	 */
-	public PacketHandler(NetworkType type) {
-		if(type == NetworkType.CLIENT) {
-			this.decoder = new PacketClientDecoder();
+	public PacketHandler(Operator operator) {
+		if(operator instanceof NettyClient) {
+			this.decoder = new PacketClientDecoder((NettyClient) operator);
 			this.encoder = new PacketClientEncoder();
-		} else {
-			this.decoder = new PacketServerDecoder();
+		} else if(operator instanceof Server) {
+			this.decoder = new PacketServerDecoder((Server) operator);
 			this.encoder = new PacketServerEncoder();
+		} else if(operator instanceof ClientUser) {
+			this.decoder = new PacketClientDecoder((ClientUser) operator);
+			this.encoder = new PacketClientEncoder();
 		}
 	}
 	
@@ -66,20 +73,5 @@ public class PacketHandler {
 	 */
 	public PacketEncoder getEncoder() {
 		return encoder;
-	}
-	
-	/**
-	 * Diese Klasse soll den Unterschied zwischen Server und Client des PacketHandlers
-	 * definieren.
-	 * 
-	 * SERVER ist dabei das Enum, dass den Server definiert und CLIENT ist das Enum, dass den Client 
-	 * definiert.
-	 * 
-	 * @author PI A
-	 *
-	 */
-	public enum NetworkType {
-		
-		SERVER, CLIENT;
 	}
 }

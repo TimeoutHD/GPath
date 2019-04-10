@@ -4,10 +4,14 @@ import java.security.InvalidKeyException;
 
 import de.pi.infodisplay.security.AuthentificationKey;
 import de.pi.infodisplay.shared.handler.PacketHandler;
+import de.pi.infodisplay.shared.packets.Packet;
+import de.pi.infodisplay.shared.security.Operator;
 import de.pi.infodisplay.shared.security.User;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.socket.SocketChannel;
 
-public class ClientUser {
+public class ClientUser implements Operator {
 
 	private SocketChannel channel;
 	private User loggedUser;
@@ -54,5 +58,10 @@ public class ClientUser {
 			disconnect();
 			throw new IllegalArgumentException("User is already authorized. WARNING: This connection is disconnected due secutity reasons");
 		}
+	}
+
+	@Override
+	public ChannelFuture sendPacket(Packet packet, Channel channel) {
+		return channel.writeAndFlush(packet, channel.voidPromise()).syncUninterruptibly();
 	}
 }

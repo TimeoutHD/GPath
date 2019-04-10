@@ -4,8 +4,11 @@ import java.util.logging.Level;
 
 import de.pi.infodisplay.Main;
 import de.pi.infodisplay.server.security.ClientUser;
+import de.pi.infodisplay.shared.packets.Packet;
+import de.pi.infodisplay.shared.security.Operator;
 import de.timeout.libs.MySQL;
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
@@ -26,7 +29,7 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
  * @author PI A
  *
  */
-public class Server {
+public class Server implements Operator {
 
 	/**
 	 * Dieses Field überprüft, ob der Server ein Linux-Betriebsystem besitzt.
@@ -122,5 +125,18 @@ public class Server {
 	
 	public MySQL getMySQL() {
 		return mysql;
+	}
+	
+	public void sendPacket(Packet packet) {
+		clientManager.getClients().forEach(client -> this.sendPacket(packet, client.getChannel()));
+	}
+
+	@Override
+	public ChannelFuture sendPacket(Packet packet, Channel channel) {
+		return channel.writeAndFlush(packet, channel.voidPromise()).syncUninterruptibly();
+	}
+
+	public ClientPool getClientManager() {
+		return clientManager;
 	}
 }
