@@ -1,5 +1,7 @@
 package de.pi.infodisplay.client.netty.handler;
 
+import de.pi.infodisplay.client.netty.NettyClient;
+import de.pi.infodisplay.server.security.ClientUser;
 import de.pi.infodisplay.shared.handler.PacketDecoder;
 import de.pi.infodisplay.shared.packets.Packet;
 import de.pi.infodisplay.shared.packets.PacketServerOutAuthorizeUser;
@@ -12,6 +14,14 @@ import de.pi.infodisplay.shared.packets.PacketServerOutInfo;
  *
  */
 public class PacketClientDecoder extends PacketDecoder {
+
+	public PacketClientDecoder(NettyClient operator) {
+		super(operator);
+	}
+	
+	public PacketClientDecoder(ClientUser operator) {
+		super(operator);
+	}
 
 	/**
 	 * Mithilfe dieser Methode werden die Packet-IDs den richtigen Wrapperklassen zugeordnet.

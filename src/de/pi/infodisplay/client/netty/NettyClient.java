@@ -19,8 +19,8 @@ import de.pi.infodisplay.Main;
 import de.pi.infodisplay.client.Client;
 import de.pi.infodisplay.client.netty.handler.ClientNetworkHandler;
 import de.pi.infodisplay.shared.handler.PacketHandler;
-import de.pi.infodisplay.shared.handler.PacketHandler.NetworkType;
 import de.pi.infodisplay.shared.packets.Packet;
+import de.pi.infodisplay.shared.security.Operator;
 
 /**
  * Diese Klasse ist für die Nettyverbindungen mit dem Server verantwortlich.
@@ -31,7 +31,7 @@ import de.pi.infodisplay.shared.packets.Packet;
  *
  */
 @SuppressWarnings("deprecation")
-public class NettyClient implements Runnable {
+public class NettyClient implements Runnable, Operator {
 	
 	/**
 	 * Dieses Field überprüft, ob der Client ein Linux-Betriebsystem besitzt.
@@ -92,7 +92,7 @@ public class NettyClient implements Runnable {
 	}
 	
 	public void run() {
-		this.handler = new PacketHandler(NetworkType.CLIENT);
+		this.handler = new PacketHandler((Operator) this);
 		Bootstrap trap = new Bootstrap();
 		EventLoopGroup workerGroup = EPOLL ? new EpollEventLoopGroup() : new NioEventLoopGroup();
 		// EventLoopGroup definieren.
@@ -153,12 +153,12 @@ public class NettyClient implements Runnable {
 		return handler;
 	}
 	
-	public ChannelFuture sendPacket(Channel channel, Packet packet) {
+	public ChannelFuture sendPacket(Packet packet, Channel channel) {
 		return channel.writeAndFlush(packet).syncUninterruptibly();
 	}
 	
 	public ChannelFuture sendPacket(Packet packet) {
-		return this.sendPacket(channel.channel(), packet);
+		return this.sendPacket(packet, channel.channel());
 	}
 	
 	public Client getParent() {

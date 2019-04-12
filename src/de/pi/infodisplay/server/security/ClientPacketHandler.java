@@ -7,7 +7,7 @@ public class ClientPacketHandler extends PacketHandler {
 	private ClientUser owner;
 	
 	public ClientPacketHandler(ClientUser owner) {
-		super(NetworkType.SERVER);
+		super(owner);
 		this.owner = owner;
 	}
 	
