@@ -17,7 +17,6 @@ import java.util.logging.Level;
 
 import de.pi.infodisplay.Main;
 import de.pi.infodisplay.client.Client;
-import de.pi.infodisplay.client.netty.handler.ClientNetworkHandler;
 import de.pi.infodisplay.shared.handler.PacketHandler;
 import de.pi.infodisplay.shared.handler.PacketHandler.NetworkType;
 import de.pi.infodisplay.shared.packets.Packet;
@@ -30,7 +29,6 @@ import de.pi.infodisplay.shared.packets.Packet;
  * @author PI A
  *
  */
-@SuppressWarnings("deprecation")
 public class NettyClient implements Runnable {
 	
 	/**
@@ -109,7 +107,7 @@ public class NettyClient implements Runnable {
 						@Override
 						protected void initChannel(SocketChannel channel) throws Exception {
 							channel.pipeline()
-								.addLast(handler.getDecoder(), handler.getEncoder(), new ClientNetworkHandler());
+								.addLast(handler.getDecoder(), handler.getEncoder());
 							Main.LOG.log(Level.INFO, "Connected to Server -> " + host);
 						}
 						
