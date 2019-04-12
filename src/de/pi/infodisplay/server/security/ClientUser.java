@@ -3,12 +3,9 @@ package de.pi.infodisplay.server.security;
 import java.security.InvalidKeyException;
 
 import de.pi.infodisplay.shared.handler.PacketHandler;
-<<<<<<< HEAD
 import de.pi.infodisplay.shared.security.AuthentificationKey;
-=======
 import de.pi.infodisplay.shared.packets.Packet;
 import de.pi.infodisplay.shared.security.Operator;
->>>>>>> refs/remotes/origin/server
 import de.pi.infodisplay.shared.security.User;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
