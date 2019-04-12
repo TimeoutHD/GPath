@@ -1,9 +1,6 @@
 package de.pi.infodisplay.client;
 
-import io.netty.channel.Channel;
 import de.pi.infodisplay.client.netty.NettyClient;
-import de.pi.infodisplay.shared.packets.Packet;
-import de.pi.infodisplay.shared.security.Operator;
 
 /**
  * Diese Klasse soll den Client darstellen.
