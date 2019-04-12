@@ -16,14 +16,13 @@ public class User {
 	private String name;
 	private String password;
 	
-	
 	/**
-	 * Erstellt einen neuen User
-	 * @param id ID des Users
-	 * @param name Name
-	 * @param password Passwort
-	 * @param db Datenbank
-	 * @param isEncoded Ist das Passwort schon encodiert?
+	 * Erzeugt einen neuen User
+	 * @param id Die ID des Users
+	 * @param name Der Benutzername des Users
+	 * @param password Das Anmeldepasswort des Users 
+	 * @param db Die Datenbank, wo die User gespeichert werden
+	 * @param isEncoded Ist das Passwort bereits encodiert ?
 	 */
 	public User(UUID id, String name, String password, MySQL db, boolean isEncoded) {
 		this.id = id;
@@ -34,10 +33,10 @@ public class User {
 	
 	
 	/**
-	 * Lädt einen User aus der angegebenen Datenbank
-	 * @param db Datenbank, aus der gelesen werden soll
-	 * @param name Name des Users
-	 * @return Das gefundene User-Objekt
+	 * Gibt ein Userobjekt mit dem eingegebenen Namen aus der Datenbank zurück
+	 * @param db Die Datenbank, wo die User gespeichert werden
+	 * @param name Der Benutzername des Users
+	 * @return Gibt neuen User aus
 	 */
 	public static User getFromDataBaseByName(MySQL db, String name) {
 		try {
