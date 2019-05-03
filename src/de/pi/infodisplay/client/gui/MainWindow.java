@@ -8,10 +8,8 @@ import javax.swing.JMenuItem;
 
 import de.pi.infodisplay.client.Client;
 
-import java.awt.FlowLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import javax.swing.JTextPane;
 import java.awt.TextArea;
 
 public class MainWindow {

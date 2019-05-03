@@ -4,6 +4,8 @@ import io.netty.buffer.ByteBuf;
 
 import java.io.IOException;
 
+import de.pi.infodisplay.shared.security.User;
+
 public class PacketClientOutAuthorizeUser extends Packet {
 
 	private String username;
@@ -28,7 +30,7 @@ public class PacketClientOutAuthorizeUser extends Packet {
 	@Override
 	public void write(ByteBuf byteBuf) throws IOException {
 		Packet.encodeString(byteBuf, username);
-		Packet.encodeString(byteBuf, password);
+		Packet.encodeString(byteBuf, User.encode(password));
 	}
 	
 	public String getPassword() {

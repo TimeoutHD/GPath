@@ -19,6 +19,7 @@ import de.pi.infodisplay.shared.packets.PacketClientOutAuthorizeUser;
 
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import javax.swing.JPasswordField;
 
 public class ConnectDialog extends JDialog {
 
@@ -65,7 +66,7 @@ public class ConnectDialog extends JDialog {
 		passwordTitle.setBounds(10, 99, 118, 22);
 		contentPanel.add(passwordTitle);
 		
-		TextField passwordField = new TextField();
+		JPasswordField passwordField = new JPasswordField();
 		passwordField.setBounds(134, 99, 276, 22);
 		contentPanel.add(passwordField);
 		{
@@ -77,8 +78,12 @@ public class ConnectDialog extends JDialog {
 				okButton.addActionListener(new ActionListener() {
 					
 					public void actionPerformed(ActionEvent e) {
-						PacketClientOutAuthorizeUser authorize = new PacketClientOutAuthorizeUser(usernameField.getText(), passwordField.getText());
-						parent.getNettyClient().sendPacket(authorize);
+						String username = usernameField.getText();
+						String password = String.valueOf(passwordField.getPassword());
+						if(username != null && !username.isEmpty() && password != null && !password.isEmpty()) {
+							PacketClientOutAuthorizeUser authorize = new PacketClientOutAuthorizeUser(usernameField.getText(), String.valueOf(passwordField.getPassword()));
+							parent.getNettyClient().sendPacket(authorize);
+						}
 					}
 				});
 				okButton.setActionCommand("OK");

@@ -80,6 +80,7 @@ public class Server {
 				EventLoopGroup workerGroup = EPOLL ? new EpollEventLoopGroup() : new NioEventLoopGroup()) {	
 			// Neue Datenbanken sehen.
 			initializeDatabases();
+			clientManager = new ClientPool(this, serverChannel);
 			serverChannel = new ServerBootstrap()
 				.group(bossGroup, workerGroup)
 				.channel(EPOLL ? EpollServerSocketChannel.class : NioServerSocketChannel.class)
@@ -102,7 +103,6 @@ public class Server {
 				.childOption(ChannelOption.SO_KEEPALIVE, true)
 				// TCP aktivieren und Server starten
 				.bind(port).sync().channel().closeFuture();
-			clientManager = new ClientPool(serverChannel);
 			Main.LOG.log(Level.INFO, "Server is started successful.");
 			serverChannel.sync();
 		} catch(Exception e) {

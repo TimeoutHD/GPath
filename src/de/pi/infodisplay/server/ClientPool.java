@@ -3,26 +3,35 @@ package de.pi.infodisplay.server;
 import java.security.InvalidKeyException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
 import de.pi.infodisplay.Main;
 import de.pi.infodisplay.server.security.ClientUser;
+import de.pi.infodisplay.shared.packets.PacketClientOutAuthorizeUser;
+import de.pi.infodisplay.shared.packets.PacketServerOutAuthorizeUser;
 import de.pi.infodisplay.shared.security.AuthentificationKey;
 import de.pi.infodisplay.shared.security.User;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandlerAdapter;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.socket.SocketChannel;
 
-public class ClientPool {
+public class ClientPool extends ChannelHandlerAdapter {
 
-	private final List<ClientUser> clientConnections = new ArrayList<>();
-	private final HashMap<User, List<AuthentificationKey>> usedKeys = new HashMap<>();
+	private static final List<ClientUser> clientConnections = new LinkedList<>();
+	private static final Map<User, List<AuthentificationKey>> usedKeys = new ConcurrentHashMap<>(Integer.MAX_VALUE);
 	
 	private ChannelFuture serverChannel;
 	
-	public ClientPool(ChannelFuture future) {
+	private Server parent;
+	
+	public ClientPool(Server parent, ChannelFuture future) {
 		this.serverChannel = future;
+		this.parent = parent;
 	}
 	
 	public ClientUser connect(SocketChannel channel) {
@@ -42,6 +51,22 @@ public class ClientPool {
 				}
 			}
 		});
+	}
+	
+	@Override
+	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+		if(msg instanceof PacketClientOutAuthorizeUser) {
+			PacketClientOutAuthorizeUser packet = (PacketClientOutAuthorizeUser) msg;
+			User user = User.getFromDataBaseByName(parent.getMySQL(), packet.getUsername());
+			PacketServerOutAuthorizeUser authorizeOut;
+			if(user.compare(packet.getPassword())) {
+				authorizeOut = new PacketServerOutAuthorizeUser(user.getUniqueId(), true);
+			} else {
+				authorizeOut = new PacketServerOutAuthorizeUser(user.getUniqueId(), false);
+			}
+			
+			ctx.channel().writeAndFlush(authorizeOut, ctx.voidPromise());
+		}
 	}
 	
 	public void disconnect(ClientUser user) {
