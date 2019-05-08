@@ -4,6 +4,7 @@ import java.sql.SQLException;
 import java.util.logging.Level;
 
 import de.pi.infodisplay.Main;
+import de.pi.infodisplay.server.handler.ClientPool;
 import de.pi.infodisplay.server.security.ClientUser;
 import de.timeout.libs.MySQL;
 import io.netty.bootstrap.ServerBootstrap;
@@ -93,7 +94,8 @@ public class Server {
 						// Handler initialisieren
 						channel.pipeline().addLast(
 								user.getPacketHandler().getDecoder(),
-								user.getPacketHandler().getEncoder());
+								user.getPacketHandler().getEncoder(),
+								clientManager);
 						Main.LOG.log(Level.INFO, "Connect -> " + channel.remoteAddress().getHostName() + ":" +
 								channel.remoteAddress().getPort());
 					}				

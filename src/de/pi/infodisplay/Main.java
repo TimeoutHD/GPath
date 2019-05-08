@@ -1,6 +1,5 @@
 package de.pi.infodisplay;
 
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import de.pi.infodisplay.client.Client;
@@ -27,13 +26,6 @@ public class Main {
 	 */
 	public static final Logger LOG = Logger.getLogger("InformationDisplay");
 	
-	/**
-	 * Dieses Field ist eine Konstante für den IPv4-Regex.
-	 * Ein Regex kann in jeder Programmiersprache Strings auf Formatierungen überprüfen.
-	 * Dieser Regex überprüft, ob der String das Format einer IPv4-Adresse unterstützt.
-	 */
-	private static final String IP_REGEX = "^([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.([01]?\\d\\d?|2[0-4]\\d|25[0-5])$";
-
 	/**
 	 * Das ist die Main-Methode innerhalb der Mainklasse, die aufgerufen wird, 
 	 * sobaled die JAR ausgeführt wird. Dabei werden die Argumente, die hinter die JAR-Datei
@@ -69,20 +61,7 @@ public class Main {
 				new Server(p >= 0 && p <= 65535 ? p : 8000);
 			// Wenn der erste Parameter "client" ist.
 			} else if("client".equalsIgnoreCase(args[0])) {
-				String host = "127.0.0.1";
-				// Argumente einlesen
-				for(int i = 1; i < (args.length -1); i++) {
-					if("-h".equalsIgnoreCase(args[i])) host = args[i + 1];
-					else if("-p".equalsIgnoreCase(args[i])) port = args[i + 1];
-				}
-				// Wenn der Port eine Zahl ist.
-				if(port.matches("\\d+")) {
-					int p = Integer.parseInt(port);
-					// Wenn alle Eingeben korrekt sind, starte den Client. Sonst beenden...
-					if(host.matches(IP_REGEX) && p >= 0 && p <= 65535)
-						new Client(host, Integer.parseInt(port));
-					else LOG.log(Level.SEVERE, "The Host- and Port-Values are incorrect. JVM will terminate now.");
-				}
+				new Client();
 			// Hilfestellung senden.
 			} else sendHelp();
 		// Hilfestellung senden.

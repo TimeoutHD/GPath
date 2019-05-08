@@ -118,6 +118,7 @@ public class NettyClient implements Runnable {
 		} catch (Exception e) {
 			Main.LOG.log(Level.SEVERE, "Failed to connect", e);
 		} finally {
+			disconnect();
 			workerGroup.shutdownGracefully();
 		}	
 
@@ -161,5 +162,9 @@ public class NettyClient implements Runnable {
 	
 	public Client getParent() {
 		return parent;
+	}
+	
+	public void disconnect() {
+		this.channel.channel().close(this.channel.channel().voidPromise());
 	}
 }

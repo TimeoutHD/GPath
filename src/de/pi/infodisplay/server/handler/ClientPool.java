@@ -1,4 +1,4 @@
-package de.pi.infodisplay.server;
+package de.pi.infodisplay.server.handler;
 
 import java.security.InvalidKeyException;
 import java.util.ArrayList;
@@ -10,6 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
 import de.pi.infodisplay.Main;
+import de.pi.infodisplay.server.Server;
 import de.pi.infodisplay.server.security.ClientUser;
 import de.pi.infodisplay.shared.packets.PacketClientOutAuthorizeUser;
 import de.pi.infodisplay.shared.packets.PacketServerOutAuthorizeUser;
@@ -18,8 +19,10 @@ import de.pi.infodisplay.shared.security.User;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerAdapter;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.socket.SocketChannel;
 
+@Sharable
 public class ClientPool extends ChannelHandlerAdapter {
 
 	private static final List<ClientUser> clientConnections = new LinkedList<>();
