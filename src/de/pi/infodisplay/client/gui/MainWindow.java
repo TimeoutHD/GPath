@@ -11,6 +11,8 @@ import de.pi.infodisplay.client.Client;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.TextArea;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 
 public class MainWindow {
 
@@ -37,9 +39,9 @@ public class MainWindow {
 	 * Create the application.
 	 */
 	public MainWindow(Client parent) {
-		this.frmInformationdisplay.setVisible(true);
 		this.parent = parent;
 		initialize();
+		this.frmInformationdisplay.setVisible(true);
 	}
 
 	/**
@@ -58,9 +60,8 @@ public class MainWindow {
 		menuBar.add(mnDatei);
 		
 		JMenuItem mntmVerbinden = new JMenuItem("Verbinden...");
-		mntmVerbinden.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseClicked(MouseEvent e) {
+		mntmVerbinden.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
 				ConnectDialog dialog = new ConnectDialog(parent);
 				dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 				dialog.setVisible(true);

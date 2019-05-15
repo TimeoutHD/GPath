@@ -43,8 +43,9 @@ public class MySQL {
 	 */
 	private void connect() {
 		try {
+			Class.forName("com.mysql.jdbc.Driver");
 			connection = DriverManager.getConnection("jdbc:mysql://" + host + ":" + port + "/" + database + "?autoReconnect=true", username, password);
-		} catch (SQLException e) {
+		} catch (SQLException | ClassNotFoundException e) {
 			Logger.getGlobal().log(Level.SEVERE, "Verbindung zur Datenbank kann nicht aufgebaut werden", e);
 		}
 	}

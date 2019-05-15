@@ -75,7 +75,7 @@ public class Server {
 	 */
 	public Server(int port) {
 		this.port = port;
-		this.mysql = new MySQL("localhost", 3304, "InformationDisplay", "pi", "piA");
+		this.mysql = new MySQL("localhost", 3306, "informationdisplay", "pi", "piA");
 		// Bootstrap für den Server
 		try(EventLoopGroup bossGroup = EPOLL ? new EpollEventLoopGroup() : new NioEventLoopGroup(); 
 				EventLoopGroup workerGroup = EPOLL ? new EpollEventLoopGroup() : new NioEventLoopGroup()) {	

@@ -66,10 +66,13 @@ public class Client {
 		return gui;
 	}
 	
-	public void connectToServer(String hostname, int port) {
+	public boolean connectToServer(String hostname, int port) {
 		if(netty != null) netty.disconnect();
-		if(hostname.matches(IP_REGEX) && (port >= 0 && port <= 65535))
+		if(hostname.matches(IP_REGEX) && (port >= 0 && port <= 65535)) {
 			netty = new NettyClient(this, hostname, port);
 			runNettyClient();
+			return true;
+		}
+		return false;
 	}
 }

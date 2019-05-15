@@ -46,7 +46,7 @@ public class Main {
 	 * @param args die n�tigen Argumente
 	 */
 	public static void main(String[] args) {
-		if(args.length > 1) {
+		if(args.length >= 1) {
 			String port = "8000";
 			// Wenn der erste Parameter "server" ist.
 			if("server".equalsIgnoreCase(args[0])) {

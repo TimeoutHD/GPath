@@ -10,7 +10,6 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.JLabel;
 
 import java.awt.Font;
-import java.awt.TextField;
 
 import javax.swing.SwingConstants;
 
@@ -20,6 +19,7 @@ import de.pi.infodisplay.shared.packets.PacketClientOutAuthorizeUser;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import javax.swing.JPasswordField;
+import javax.swing.JTextField;
 
 public class ConnectDialog extends JDialog {
 
@@ -31,6 +31,8 @@ public class ConnectDialog extends JDialog {
 	private final JPanel contentPanel = new JPanel();
 	
 	private Client parent;
+	private JTextField hostField;
+	private JTextField portField;
 
 	/**
 	 * Create the dialog.
@@ -52,23 +54,43 @@ public class ConnectDialog extends JDialog {
 			contentPanel.add(title);
 		
 		
-			TextField usernameField = new TextField();
-			usernameField.setBounds(134, 66, 276, 22);
+			JTextField usernameField = new JTextField();
+			usernameField.setBounds(134, 131, 276, 22);
 			contentPanel.add(usernameField);
 		
 		JLabel usernameTitle = new JLabel("Benutzername:");
 		usernameTitle.setHorizontalAlignment(SwingConstants.CENTER);
-		usernameTitle.setBounds(10, 66, 118, 22);
+		usernameTitle.setBounds(10, 131, 118, 22);
 		contentPanel.add(usernameTitle);
 		
 		JLabel passwordTitle = new JLabel("Passwort:");
 		passwordTitle.setHorizontalAlignment(SwingConstants.CENTER);
-		passwordTitle.setBounds(10, 99, 118, 22);
+		passwordTitle.setBounds(10, 163, 118, 22);
 		contentPanel.add(passwordTitle);
 		
 		JPasswordField passwordField = new JPasswordField();
-		passwordField.setBounds(134, 99, 276, 22);
+		passwordField.setBounds(134, 163, 276, 22);
 		contentPanel.add(passwordField);
+		
+		hostField = new JTextField();
+		hostField.setBounds(134, 54, 276, 20);
+		contentPanel.add(hostField);
+		hostField.setColumns(10);
+		
+		portField = new JTextField();
+		portField.setBounds(134, 85, 276, 20);
+		contentPanel.add(portField);
+		portField.setColumns(10);
+		
+		JLabel hostTitle = new JLabel("Server-IP:");
+		hostTitle.setHorizontalAlignment(SwingConstants.CENTER);
+		hostTitle.setBounds(10, 54, 118, 20);
+		contentPanel.add(hostTitle);
+		
+		JLabel portTitle = new JLabel("Server-Port:");
+		portTitle.setHorizontalAlignment(SwingConstants.CENTER);
+		portTitle.setBounds(10, 85, 118, 20);
+		contentPanel.add(portTitle);
 		{
 			JPanel buttonPane = new JPanel();
 			buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
@@ -78,11 +100,19 @@ public class ConnectDialog extends JDialog {
 				okButton.addActionListener(new ActionListener() {
 					
 					public void actionPerformed(ActionEvent e) {
-						String username = usernameField.getText();
-						String password = String.valueOf(passwordField.getPassword());
-						if(username != null && !username.isEmpty() && password != null && !password.isEmpty()) {
-							PacketClientOutAuthorizeUser authorize = new PacketClientOutAuthorizeUser(usernameField.getText(), String.valueOf(passwordField.getPassword()));
-							parent.getNettyClient().sendPacket(authorize);
+						String host = hostField.getText();
+						String portString = portField.getText();
+						if(portString.matches("\\d+")) {
+							int port = Integer.valueOf(portString);
+							
+							if(parent.connectToServer(host, port)) {
+								String username = usernameField.getText();
+								String password = String.valueOf(passwordField.getPassword());
+								if(username != null && !username.isEmpty() && password != null && !password.isEmpty()) {
+									PacketClientOutAuthorizeUser authorize = new PacketClientOutAuthorizeUser(usernameField.getText(), String.valueOf(passwordField.getPassword()));
+									parent.getNettyClient().sendPacket(authorize);
+								}
+							}
 						}
 					}
 				});
