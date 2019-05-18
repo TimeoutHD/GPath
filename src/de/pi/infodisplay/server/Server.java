@@ -75,10 +75,12 @@ public class Server {
 	 */
 	public Server(int port) {
 		this.port = port;
-		this.mysql = new MySQL("localhost", 3306, "informationdisplay", "pi", "piA");
+		this.mysql = new MySQL("localhost", 3306, "informationdisplay");
 		// Bootstrap für den Server
 		try(EventLoopGroup bossGroup = EPOLL ? new EpollEventLoopGroup() : new NioEventLoopGroup(); 
 				EventLoopGroup workerGroup = EPOLL ? new EpollEventLoopGroup() : new NioEventLoopGroup()) {	
+			// MySQL-Verbindung aufbauen
+			mysql.connect("pi", "piA");
 			// Neue Datenbanken sehen.
 			initializeDatabases();
 			clientManager = new ClientPool(this, serverChannel);
@@ -131,7 +133,7 @@ public class Server {
 	private void initializeDatabases() throws SQLException {
 		if(mysql.isConnected()) {
 			mysql.executeVoidStatement("CREATE TABLE IF NOT EXISTS Information(id INT(4) PRIMARY KEY, creatorID VARCHAR(36), path TEXT)");
-			mysql.executeVoidStatement("CREATE TABLE IF NOT EXISTS User(id VARCHAR(36) PRIMARY KEY, name VARCHAR(100), password TEXT, admin TINYINT(1))");
+			mysql.executeVoidStatement("CREATE TABLE IF NOT EXISTS User(uuid VARCHAR(36) PRIMARY KEY, name VARCHAR(100), password TEXT, admin TINYINT(1))");
 		}
 	}
 }
