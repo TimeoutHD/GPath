@@ -9,6 +9,7 @@ import de.pi.infodisplay.server.security.ClientUser;
 import de.pi.infodisplay.shared.packets.Packet;
 import de.pi.infodisplay.shared.security.Operator;
 import de.timeout.libs.MySQL;
+
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;

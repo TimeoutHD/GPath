@@ -2,21 +2,26 @@ package de.pi.infodisplay.server.handler;
 
 import java.io.File;
 
-import de.timeout.libs.MySQL;
-import io.netty.channel.ChannelHandlerAdapter;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.codec.http.HttpObject;
+import io.netty.handler.codec.http.HttpRequestDecoder;
+import io.netty.handler.codec.http.HttpRequestEncoder;
 
-public class FileUploadHandler extends ChannelHandlerAdapter {
+public class FileUploadHandler extends SimpleChannelInboundHandler<HttpObject> {
 	
-	private static MySQL mysql = new MySQL("localhost", 3306, "informationdisplay");
-	
-	static {
-		
-	}
+	private final HttpRequestDecoder requestDecoder = new HttpRequestDecoder();
+	private final HttpRequestEncoder requestEncoder = new HttpRequestEncoder();
 	
 	private File dataFolder;
 	
 	public FileUploadHandler(File dataFolder) {
-		
+		this.dataFolder = dataFolder;
 	}
 
+	@Override
+	protected void messageReceived(ChannelHandlerContext ctx, HttpObject httpObject) throws Exception {
+		// https://stackoverflow.com/questions/24113288/how-get-file-data-from-post-request-in-netty-4
+		
+	}
 }
