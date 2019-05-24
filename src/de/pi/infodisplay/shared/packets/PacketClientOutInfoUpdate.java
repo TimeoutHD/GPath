@@ -6,7 +6,7 @@ import io.netty.buffer.ByteBuf;
 
 public class PacketClientOutInfoUpdate extends Packet {
 
-	protected PacketClientOutInfoUpdate() {
+	public PacketClientOutInfoUpdate() {
 		super(201);
 	}
 

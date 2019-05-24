@@ -7,6 +7,8 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 
 import de.pi.infodisplay.client.Client;
+import de.pi.infodisplay.shared.packets.PacketClientOutAuthorizeUser;
+import de.pi.infodisplay.shared.packets.PacketClientOutInfoUpdate;
 
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -69,8 +71,14 @@ public class MainWindow {
 		});
 		mnDatei.add(mntmVerbinden);
 		
-		JMenuItem mntmDatenstandAktuallisieren = new JMenuItem("Datenstand aktualisieren");
-		mnDatei.add(mntmDatenstandAktuallisieren);
+		JMenuItem mntmDatenstandAktualisieren = new JMenuItem("Datenstand aktualisieren");
+		mnDatei.add(mntmDatenstandAktualisieren);
+		mntmDatenstandAktualisieren.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				PacketClientOutInfoUpdate update = new PacketClientOutInfoUpdate();
+				parent.getNettyClient().sendPacket(update);
+			}
+		});
 		
 		JMenuItem mntmBeenden = new JMenuItem("Beenden");
 		mnDatei.add(mntmBeenden);
@@ -80,6 +88,7 @@ public class MainWindow {
 		
 		JMenuItem mntmEinstellungen = new JMenuItem("Einstellungen");
 		mnBearbeiten.add(mntmEinstellungen);
+		
 		frmInformationdisplay.getContentPane().setLayout(null);
 		
 		TextArea infoBoard = new TextArea();
