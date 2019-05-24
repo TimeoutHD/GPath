@@ -103,7 +103,7 @@ public class User {
 	public boolean isAdmin() {
 		Table table = null;
 		try {
-			table = mysql.executeStatement("SELECT admin FROM User WHERE UUID = ?", id.toString());
+			table = mysql.executeStatement("SELECT admin FROM User WHERE uuid = ?", id.toString());
 		} catch (SQLException e) {
 			Logger.getGlobal().log(Level.SEVERE, "Critical Error with Database", e);
 			return false;

@@ -18,6 +18,8 @@ import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.codec.http.HttpRequestDecoder;
+import io.netty.handler.codec.http.HttpRequestEncoder;
 
 
 /**
@@ -65,7 +67,15 @@ public class Server {
 	 * 
 	 * Auch hier wird das Attribut nur deklariert.
 	 */
-	private MySQL mysql;
+	private static final MySQL mysql = new MySQL("localhost", 3306, "informationdisplay");
+	
+	static {
+		try {
+			mysql.connect("pi", "piA");
+		} catch (SQLException e) {
+			Main.LOG.log(Level.SEVERE, "Could not connect to MySQL-Database", e);
+		}
+	}
 	
 	/**
 	 * Erstellt einen NettyServer, der den angegebenen Port besetzt.
@@ -75,7 +85,6 @@ public class Server {
 	 */
 	public Server(int port) {
 		this.port = port;
-		this.mysql = new MySQL("localhost", 3306, "informationdisplay");
 		// Bootstrap für den Server
 		try(EventLoopGroup bossGroup = EPOLL ? new EpollEventLoopGroup() : new NioEventLoopGroup(); 
 				EventLoopGroup workerGroup = EPOLL ? new EpollEventLoopGroup() : new NioEventLoopGroup()) {	
@@ -97,7 +106,9 @@ public class Server {
 						channel.pipeline().addLast(
 								user.getPacketHandler().getDecoder(),
 								user.getPacketHandler().getEncoder(),
-								clientManager);
+								clientManager,
+								new HttpRequestDecoder(),
+								new HttpRequestEncoder());
 						Main.LOG.log(Level.INFO, "Connect -> " + channel.remoteAddress().getHostName() + ":" +
 								channel.remoteAddress().getPort());
 					}				
