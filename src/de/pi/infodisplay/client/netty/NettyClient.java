@@ -17,7 +17,6 @@ import java.util.logging.Level;
 
 import de.pi.infodisplay.Main;
 import de.pi.infodisplay.client.Client;
-import de.pi.infodisplay.client.netty.handler.ClientNetworkHandler;
 import de.pi.infodisplay.shared.handler.PacketHandler;
 import de.pi.infodisplay.shared.packets.Packet;
 import de.pi.infodisplay.shared.security.Operator;
@@ -30,9 +29,8 @@ import de.pi.infodisplay.shared.security.Operator;
  * @author PI A
  *
  */
-@SuppressWarnings("deprecation")
 public class NettyClient implements Runnable, Operator {
-	
+
 	/**
 	 * Dieses Field überprüft, ob der Client ein Linux-Betriebsystem besitzt.
 	 * Je nachdem, welches Betriebsystem benutzt wird, muss abgewägt werden, welches Protokoll benutzt werden muss.
@@ -109,7 +107,7 @@ public class NettyClient implements Runnable, Operator {
 						@Override
 						protected void initChannel(SocketChannel channel) throws Exception {
 							channel.pipeline()
-								.addLast(handler.getDecoder(), handler.getEncoder(), new ClientNetworkHandler());
+								.addLast(handler.getDecoder(), handler.getEncoder());
 							Main.LOG.log(Level.INFO, "Connected to Server -> " + host);
 						}
 						
@@ -120,6 +118,7 @@ public class NettyClient implements Runnable, Operator {
 		} catch (Exception e) {
 			Main.LOG.log(Level.SEVERE, "Failed to connect", e);
 		} finally {
+			disconnect();
 			workerGroup.shutdownGracefully();
 		}	
 
@@ -163,5 +162,9 @@ public class NettyClient implements Runnable, Operator {
 	
 	public Client getParent() {
 		return parent;
+	}
+	
+	public void disconnect() {
+		this.channel.channel().close(this.channel.channel().voidPromise());
 	}
 }

@@ -1,5 +1,6 @@
 package de.pi.infodisplay.client;
 
+import de.pi.infodisplay.client.gui.MainWindow;
 import de.pi.infodisplay.client.netty.NettyClient;
 
 /**
@@ -11,6 +12,14 @@ import de.pi.infodisplay.client.netty.NettyClient;
 public class Client {
 	
 	/**
+	 * Dieses Field ist eine Konstante für den IPv4-Regex.
+	 * Ein Regex kann in jeder Programmiersprache Strings auf Formatierungen überprüfen.
+	 * Dieser Regex überprüft, ob der String das Format einer IPv4-Adresse unterstützt.
+	 */
+	private static final String IP_REGEX = "^([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.([01]?\\d\\d?|2[0-4]\\d|25[0-5])$";
+
+	
+	/**
 	 * Das ist das Field für den NettyClient. Der NettyClient
 	 * ist für die Verbindung zum Server und das Netzwerk verantwortlich.
 	 * Hierüber werden alle Packets gesendet und empfangen.
@@ -19,7 +28,7 @@ public class Client {
 	 */
 	private NettyClient netty;
 	
-	private Console console;
+	private MainWindow gui;
 	
 	/**
 	 * Das ist der Constructor für die Clientklasse.
@@ -30,18 +39,15 @@ public class Client {
 	 * @param host Die IPv4-Adresse des Servers
 	 * @param port Der Port des Servers
 	 */
-	public Client(String host, int port) {
-		// Initialisierung NettyClient
-		this.netty = new NettyClient(this, host, port);
-		runNettyClient();
+	public Client() {
 		// Initialisierung GUI-Interface
-		this.console = new Console("InformationDisplay", this);
+		this.gui = new MainWindow(this);
 	}
 	
 	/**
 	 * Diese Methode startet den NettyClient in einem parallelen Thread.
 	 */
-	public void runNettyClient() {
+	private void runNettyClient() {
 		new Thread(netty).start();
 	}
 	
@@ -57,7 +63,17 @@ public class Client {
 		return netty;
 	}
 	
-	public Console getTerminal() {
-		return console;
+	public MainWindow getMainWindowGUI() {
+		return gui;
+	}
+	
+	public boolean connectToServer(String hostname, int port) {
+		if(netty != null) netty.disconnect();
+		if(hostname.matches(IP_REGEX) && (port >= 0 && port <= 65535)) {
+			netty = new NettyClient(this, hostname, port);
+			runNettyClient();
+			return true;
+		}
+		return false;
 	}
 }

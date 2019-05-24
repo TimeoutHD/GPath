@@ -1,8 +1,10 @@
 package de.pi.infodisplay.server;
 
+import java.sql.SQLException;
 import java.util.logging.Level;
 
 import de.pi.infodisplay.Main;
+import de.pi.infodisplay.server.handler.ClientPool;
 import de.pi.infodisplay.server.security.ClientUser;
 import de.pi.infodisplay.shared.packets.Packet;
 import de.pi.infodisplay.shared.security.Operator;
@@ -19,6 +21,8 @@ import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.codec.http.HttpRequestDecoder;
+import io.netty.handler.codec.http.HttpRequestEncoder;
 
 
 /**
@@ -66,7 +70,15 @@ public class Server implements Operator {
 	 * 
 	 * Auch hier wird das Attribut nur deklariert.
 	 */
-	private MySQL mysql;
+	private static final MySQL mysql = new MySQL("localhost", 3306, "informationdisplay");
+	
+	static {
+		try {
+			mysql.connect("pi", "piA");
+		} catch (SQLException e) {
+			Main.LOG.log(Level.SEVERE, "Could not connect to MySQL-Database", e);
+		}
+	}
 	
 	/**
 	 * Erstellt einen NettyServer, der den angegebenen Port besetzt.
@@ -76,11 +88,14 @@ public class Server implements Operator {
 	 */
 	public Server(int port) {
 		this.port = port;
-		this.mysql = new MySQL("localhost", 3304, "InformationDisplay", "pi", "piA");
-		
 		// Bootstrap für den Server
 		try(EventLoopGroup bossGroup = EPOLL ? new EpollEventLoopGroup() : new NioEventLoopGroup(); 
-				EventLoopGroup workerGroup = EPOLL ? new EpollEventLoopGroup() : new NioEventLoopGroup()) {		
+				EventLoopGroup workerGroup = EPOLL ? new EpollEventLoopGroup() : new NioEventLoopGroup()) {	
+			// MySQL-Verbindung aufbauen
+			mysql.connect("pi", "piA");
+			// Neue Datenbanken sehen.
+			initializeDatabases();
+			clientManager = new ClientPool(this, serverChannel);
 			serverChannel = new ServerBootstrap()
 				.group(bossGroup, workerGroup)
 				.channel(EPOLL ? EpollServerSocketChannel.class : NioServerSocketChannel.class)
@@ -93,7 +108,10 @@ public class Server implements Operator {
 						// Handler initialisieren
 						channel.pipeline().addLast(
 								user.getPacketHandler().getDecoder(),
-								user.getPacketHandler().getEncoder());
+								user.getPacketHandler().getEncoder(),
+								clientManager,
+								new HttpRequestDecoder(),
+								new HttpRequestEncoder());
 						Main.LOG.log(Level.INFO, "Connect -> " + channel.remoteAddress().getHostName() + ":" +
 								channel.remoteAddress().getPort());
 					}				
@@ -103,12 +121,15 @@ public class Server implements Operator {
 				.childOption(ChannelOption.SO_KEEPALIVE, true)
 				// TCP aktivieren und Server starten
 				.bind(port).sync().channel().closeFuture();
-			clientManager = new ClientPool(serverChannel);
 			Main.LOG.log(Level.INFO, "Server is started successful.");
 			serverChannel.sync();
 		} catch(Exception e) {
 			Main.LOG.log(Level.SEVERE, "Cannot create Server", e);
 		}
+	}
+	
+	public static MySQL getMySQL() {
+		return mysql;
 	}
 
 	/**
@@ -123,10 +144,6 @@ public class Server implements Operator {
 		return serverChannel;
 	}
 	
-	public MySQL getMySQL() {
-		return mysql;
-	}
-	
 	public void sendPacket(Packet packet) {
 		clientManager.getClients().forEach(client -> this.sendPacket(packet, client.getChannel()));
 	}
@@ -138,5 +155,12 @@ public class Server implements Operator {
 
 	public ClientPool getClientManager() {
 		return clientManager;
+	}
+	
+	private void initializeDatabases() throws SQLException {
+		if(mysql.isConnected()) {
+			mysql.executeVoidStatement("CREATE TABLE IF NOT EXISTS Information(id INT(4) PRIMARY KEY, creatorID VARCHAR(36), path TEXT)");
+			mysql.executeVoidStatement("CREATE TABLE IF NOT EXISTS User(uuid VARCHAR(36) PRIMARY KEY, name VARCHAR(100), password TEXT, admin TINYINT(1))");
+		}
 	}
 }

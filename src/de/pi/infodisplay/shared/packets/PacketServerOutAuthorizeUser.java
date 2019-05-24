@@ -12,8 +12,12 @@ public class PacketServerOutAuthorizeUser extends Packet {
 	private boolean loginResult;
 	private AuthentificationKey securityKey;
 
-	public PacketServerOutAuthorizeUser(UUID userID, boolean loginResult) {
+	private PacketServerOutAuthorizeUser() {
 		super(101);
+	}
+	
+	public PacketServerOutAuthorizeUser(UUID userID, boolean loginResult) {
+		this();
 		this.userID = userID;
 		this.loginResult = loginResult;
 		this.securityKey = new AuthentificationKey();
