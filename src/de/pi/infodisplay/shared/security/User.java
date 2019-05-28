@@ -143,4 +143,15 @@ public class User {
 		}
 		return Integer.valueOf((String) table.getElement("admin", 0).getValue()) == 1;
 	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if(obj != null && obj.getClass().equals(this.getClass())) {
+			User user = (User) obj;
+			return user.getName().equalsIgnoreCase(name) && user.getUniqueId().toString().equalsIgnoreCase(id.toString());
+		}
+		return false;
+	}
+	
+	
 }

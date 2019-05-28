@@ -1,10 +1,12 @@
 package de.pi.infodisplay.server;
 
+import java.io.File;
 import java.sql.SQLException;
 import java.util.logging.Level;
 
 import de.pi.infodisplay.Main;
 import de.pi.infodisplay.server.handler.ClientPool;
+import de.pi.infodisplay.server.handler.FileUploadHandler;
 import de.pi.infodisplay.server.security.ClientUser;
 import de.pi.infodisplay.shared.packets.Packet;
 import de.pi.infodisplay.shared.security.Operator;
@@ -65,6 +67,8 @@ public class Server implements Operator {
 	
 	private ClientPool clientManager;
 	
+	private FileUploadHandler fileUploadManager;
+	
 	/**
 	 * Das ist das Field für die benutzte MySQL-Datenbank, wo der Server die benötigten Informationen abspeichert.
 	 * Jegliche Benutzerdaten und Speicheradressen der Informationen werden hier zwischengespeichert.
@@ -97,6 +101,7 @@ public class Server implements Operator {
 			// Neue Datenbanken sehen.
 			initializeDatabases();
 			clientManager = new ClientPool(this, serverChannel);
+			fileUploadManager = new FileUploadHandler(new File(new File(System.getProperty("user.home")), "infoCache"));
 			serverChannel = new ServerBootstrap()
 				.group(bossGroup, workerGroup)
 				.channel(EPOLL ? EpollServerSocketChannel.class : NioServerSocketChannel.class)
@@ -112,7 +117,8 @@ public class Server implements Operator {
 								user.getPacketHandler().getEncoder(),
 								clientManager,
 								new HttpRequestDecoder(),
-								new HttpRequestEncoder());
+								new HttpRequestEncoder(),
+								fileUploadManager);
 						Main.LOG.log(Level.INFO, "Connect -> " + channel.remoteAddress().getHostName() + ":" +
 								channel.remoteAddress().getPort());
 					}				

@@ -85,4 +85,17 @@ public class ClientPool extends ChannelHandlerAdapter {
 	public ChannelFuture getServerChannel() {
 		return serverChannel;
 	}
+	
+	public boolean isAuthorized(String ip, User user) {
+		
+	}
+	
+	public ClientUser isConnected(String ip, User user) {
+		for(ClientUser cUser : clientConnections){
+			if(cUser.getChannel().localAddress().getAddress().getHostAddress().equalsIgnoreCase(ip) &&
+					cUser.getLoggedUser().) 
+				return cUser;
+		}
+		return null;
+	}
 }

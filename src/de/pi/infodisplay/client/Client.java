@@ -8,7 +8,6 @@ import de.pi.infodisplay.client.netty.NettyClient;
  * @author PI A
  *
  */
-@SuppressWarnings("deprecation")
 public class Client {
 	
 	/**
