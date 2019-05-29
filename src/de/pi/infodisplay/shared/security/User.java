@@ -9,14 +9,13 @@ import java.util.logging.Logger;
 
 import de.pi.infodisplay.Main;
 import de.pi.infodisplay.server.Server;
-import de.timeout.libs.MySQL;
+import de.pi.infodisplay.server.security.ClientUser;
 import de.timeout.libs.MySQL.Table;
 
 public class User {
 		
 	private UUID id;
 	private String name;
-	private String password;
 	
 	/**
 	 * Erzeugt einen neuen User
@@ -26,14 +25,9 @@ public class User {
 	 * @param db Die Datenbank, wo die User gespeichert werden
 	 * @param isEncoded Ist das Passwort bereits encodiert ?
 	 */
-	public User(UUID id, String name, String password, MySQL db, boolean isEncoded) {
-
-	}
-	
-	public User(UUID id, String name, String password, boolean isEncoded) {
+	public User(UUID id, String name) {
 		this.id = id;
 		this.name = name;
-		this.password = isEncoded ? password : User.encode(password);
 	}
 		
 	/**
@@ -45,15 +39,22 @@ public class User {
 		try {
 			Table table = Server.getMySQL().executeStatement("SELECT * FROM users WHERE name = ?", name);
 			return new User(UUID.fromString((String) table.getElement("uuid", 0).getValue()),
-					table.getElement("name", 0).getValue().toString(),
-					table.getElement("password", 0).getValue().toString(), true);
+					table.getElement("name", 0).getValue().toString());
 		} catch (SQLException e) {
 			Main.LOG.log(Level.SEVERE, "Cannot result SQL-Statement", e);
 		}
 		return null;
 	}
 	
-
+	public static User getFromDatabaseByUUID(UUID uuid) {
+		try {
+			Table table = Server.getMySQL().executeStatement("SELECT * from users WHERE uuid = ?", uuid.toString());
+			return new User(uuid, table.getElement("name", 0).getValue().toString());
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
 	
 	public static String encode(String pw) {
 		try {
@@ -70,15 +71,21 @@ public class User {
 		}
 	}
 	
+	public static void changePassword(User user, String newPassword, ClientUser operator) throws SQLException {
+		if(operator.isAuthorized() && operator.getLoggedUser().isAdmin() && user.exists()) {
+			Server.getMySQL().executeVoidStatement("UPDATE users SET password = ? WHERE uuid = ?", User.encode(newPassword), user.getUniqueId().toString());
+		}
+	}
+	
 	public void saveInDatabase() {
 			try {
-				if(!exists()) Server.getMySQL().executeVoidStatement("INSERT INTO users(id, name, password, admin) VALUES(?,?,?)", id.toString(), name, password);
-				else Server.getMySQL().executeVoidStatement("UPDATE name = ?, password = ? FROM users WHERE uuid = ?", name, password, id.toString());
+				if(!exists()) Server.getMySQL().executeVoidStatement("INSERT INTO users(id, name, password, admin) VALUES(?,?,?)", id.toString(), name, null, String.valueOf(0));
+				else Server.getMySQL().executeVoidStatement("UPDATE name = ?, FROM users WHERE uuid = ?", name, id.toString());
 			} catch (SQLException e) {
 				Main.LOG.log(Level.SEVERE, "Cannot result SQL-Statement", e);
 			}
 	}
-	
+		
 	/**
 	 * Überprüft, ob der User in der Datenbank existiert
 	 * @return Existiert der User in der Datenbank
@@ -92,22 +99,23 @@ public class User {
 	/**
 	 * Überprüft das Passwort
 	 * @param password Passwort
-	 * @return
+	 * @return das Resultat
+	 * @throws SQLException Wenn ein unerwarteter MySQL-Fehler passiert
 	 */
-	public boolean compare(String password) {
-		return this.password.equals(password);
+	public boolean compare(String password) throws SQLException {
+		return Server.getMySQL().executeStatement("SELECT password FROM users WHERE id = ?", id.toString()).getElement("password", 0).getValue().toString().equals(password);
 	}
 	
 	/**
 	 * Setzt ein neues Passwort
 	 * @param oldpw Altes Passwort
 	 * @param newpw Neues Passwort
-	 * @return War das angegebene Passwort richtig?
+	 * @return Ob die Methode erfolgreoch ausgeführt wurde
+	 * @throws SQLException Wenn ein unerwarteter MySQL-Fehler auftritt
 	 */
-	public boolean setPassword(String oldpw, String newpw) {
+	public boolean setPassword(String oldpw, String newpw) throws SQLException {
 		if(compare(User.encode(oldpw))) {
-			this.password = User.encode(newpw);
-			return true;
+			return Server.getMySQL().executeVoidStatement("UPDATE users SET password = ? WHERE id = ?", User.encode(newpw), id.toString());
 		}
 		return false;
 	}

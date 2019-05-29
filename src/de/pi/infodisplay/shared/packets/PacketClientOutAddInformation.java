@@ -29,7 +29,7 @@ public class PacketClientOutAddInformation extends Packet {
 		Packet.encodeString(byteBuf, userID.toString());
 	}
 
-	public UUID getUniqueID() {
+	public UUID getUserUniqueID() {
 		return this.userID;
 	}
 	
