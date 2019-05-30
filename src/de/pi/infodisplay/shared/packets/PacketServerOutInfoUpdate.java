@@ -6,6 +6,7 @@ import de.pi.infodisplay.server.Information;
 import de.pi.infodisplay.shared.handler.ImageHandler;
 import io.netty.buffer.ByteBuf;
 
+@Deprecated
 public class PacketServerOutInfoUpdate extends Packet {
 
 	private boolean lastInfo;

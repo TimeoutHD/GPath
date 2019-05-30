@@ -26,7 +26,7 @@ public abstract class PacketDecoder extends ByteToMessageDecoder {
 		getSendPacket(input);
 	}
 	
-	protected Packet getSendPacket(ByteBuf input) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, IOException {
+	protected Packet getSendPacket(ByteBuf input) throws InstantiationException, IllegalAccessException, InvocationTargetException, IOException {
 		if(input.isReadable()) {
 			int id = input.readInt();
 			Class<? extends Packet> packetClass = getPacketClassByID(id);
@@ -36,7 +36,7 @@ public abstract class PacketDecoder extends ByteToMessageDecoder {
 				return packet;
 			}  throw new IllegalArgumentException("Packet-ID " + id + " is not in use");
 		}	
-		throw new IllegalAccessException("Cannot read Bytebuf");
+		throw new IllegalArgumentException("Cannot read Bytebuf");
 	}
 
 	protected abstract Class<? extends Packet> getPacketClassByID(int id);

@@ -6,22 +6,22 @@ import java.lang.reflect.Modifier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class Reflections {
+public final class Reflections {
 		
 	private static final Field modifiers = getField(Field.class, "modifiers");
 	
 	private Reflections() {}
 
 	public static Field getField(Class<?> clazz, String name) {
-		try {
-			Field field = clazz.getDeclaredField(name);
-		    field.setAccessible(true);
-		      
-		    if (Modifier.isFinal(field.getModifiers()))modifiers.set(field, field.getModifiers() & ~Modifier.FINAL);
-		    return field;
-		} catch (Exception e) {
-			Logger.getGlobal().log(Level.WARNING, "Could not find Field " + name + " in Class " + clazz.getName(), e);
-		}
+			try {
+				Field field = clazz.getDeclaredField(name);
+			    field.setAccessible(true);
+			      
+			    if (Modifier.isFinal(field.getModifiers()))modifiers.set(field, field.getModifiers() & ~Modifier.FINAL);
+			    return field;
+			} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
+				Logger.getGlobal().log(Level.WARNING, "Could not find Field " + name + " in Class " + clazz.getName(), e);
+			}
 	return null;
 	}
 	

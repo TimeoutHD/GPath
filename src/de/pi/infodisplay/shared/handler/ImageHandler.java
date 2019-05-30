@@ -10,6 +10,7 @@ import java.util.logging.Level;
 
 import de.pi.infodisplay.Main;
 
+@Deprecated
 public class ImageHandler {
 	
 	public ImageHandler() {
@@ -20,7 +21,7 @@ public class ImageHandler {
 		return new ConvertedImage(image);
 	}
 
-	public class ConvertedImage {
+	public static class ConvertedImage {
 		
 		private final Base64.Decoder decoder = Base64.getDecoder();
 		private final Base64.Encoder encoder = Base64.getEncoder();

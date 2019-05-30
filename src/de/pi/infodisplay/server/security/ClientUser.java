@@ -1,7 +1,5 @@
 package de.pi.infodisplay.server.security;
 
-import java.security.InvalidKeyException;
-
 import de.pi.infodisplay.shared.handler.PacketHandler;
 import de.pi.infodisplay.shared.security.AuthentificationKey;
 import de.pi.infodisplay.shared.packets.Packet;
@@ -74,7 +72,7 @@ public class ClientUser implements Operator {
 		channel.close(channel.voidPromise());
 	}
 	
-	public void authorize(User user, AuthentificationKey securityKey) throws InvalidKeyException {
+	public void authorize(User user, AuthentificationKey securityKey) {
 		if(!isAuthorized()) {
 			this.loggedUser = user;
 			this.secutityKey = securityKey;
@@ -84,8 +82,12 @@ public class ClientUser implements Operator {
 		}
 	}
 
-	@Override
 	public ChannelFuture sendPacket(Packet packet, Channel channel) {
+		return channel.writeAndFlush(packet, channel.voidPromise()).syncUninterruptibly();
+	}
+
+	@Override
+	public ChannelFuture apply(Packet packet, Channel channel) {
 		return channel.writeAndFlush(packet, channel.voidPromise()).syncUninterruptibly();
 	}
 }

@@ -1,12 +1,12 @@
 package de.pi.infodisplay.server;
 
-import java.io.File;
 import java.sql.SQLException;
 import java.util.logging.Level;
 
 import de.pi.infodisplay.Main;
 import de.pi.infodisplay.server.handler.ClientPool;
 import de.pi.infodisplay.server.handler.FileUploadHandler;
+import de.pi.infodisplay.server.handler.InformationUploadHandler;
 import de.pi.infodisplay.server.security.ClientUser;
 import de.pi.infodisplay.shared.packets.Packet;
 import de.pi.infodisplay.shared.security.Operator;
@@ -69,6 +69,8 @@ public class Server implements Operator {
 	
 	private FileUploadHandler fileUploadManager;
 	
+	private InformationUploadHandler informationManager;
+	
 	/**
 	 * Das ist das Field für die benutzte MySQL-Datenbank, wo der Server die benötigten Informationen abspeichert.
 	 * Jegliche Benutzerdaten und Speicheradressen der Informationen werden hier zwischengespeichert.
@@ -100,8 +102,9 @@ public class Server implements Operator {
 			mysql.connect("pi", "piA");
 			// Neue Datenbanken sehen.
 			initializeDatabases();
-			clientManager = new ClientPool(this, serverChannel);
-			fileUploadManager = new FileUploadHandler(new File(new File(System.getProperty("user.home")), "infoCache"));
+			clientManager = new ClientPool(serverChannel);
+			fileUploadManager = new FileUploadHandler();
+			informationManager = new InformationUploadHandler(this);
 			serverChannel = new ServerBootstrap()
 				.group(bossGroup, workerGroup)
 				.channel(EPOLL ? EpollServerSocketChannel.class : NioServerSocketChannel.class)
@@ -152,16 +155,15 @@ public class Server implements Operator {
 	}
 	
 	public void sendPacket(Packet packet) {
-		clientManager.getClients().forEach(client -> this.sendPacket(packet, client.getChannel()));
-	}
-
-	@Override
-	public ChannelFuture sendPacket(Packet packet, Channel channel) {
-		return channel.writeAndFlush(packet, channel.voidPromise()).syncUninterruptibly();
+		clientManager.getClients().forEach(client -> this.apply(packet, client.getChannel()));
 	}
 
 	public ClientPool getClientManager() {
 		return clientManager;
+	}
+	
+	public InformationUploadHandler getInformationUploadManager() {
+		return informationManager;
 	}
 	
 	private void initializeDatabases() throws SQLException {
@@ -169,5 +171,10 @@ public class Server implements Operator {
 			mysql.executeVoidStatement("CREATE TABLE IF NOT EXISTS Information(id INT(4) PRIMARY KEY, creatorID VARCHAR(36), path TEXT)");
 			mysql.executeVoidStatement("CREATE TABLE IF NOT EXISTS User(uuid VARCHAR(36) PRIMARY KEY, name VARCHAR(100), password TEXT, admin TINYINT(1))");
 		}
+	}
+
+	@Override
+	public ChannelFuture apply(Packet packet, Channel channel) {
+		return channel.writeAndFlush(packet, channel.voidPromise()).syncUninterruptibly();
 	}
 }

@@ -152,12 +152,8 @@ public class NettyClient implements Runnable, Operator {
 		return handler;
 	}
 	
-	public ChannelFuture sendPacket(Packet packet, Channel channel) {
-		return channel.writeAndFlush(packet).syncUninterruptibly();
-	}
-	
 	public ChannelFuture sendPacket(Packet packet) {
-		return this.sendPacket(packet, channel.channel());
+		return this.apply(packet, channel.channel());
 	}
 	
 	public Client getParent() {
@@ -166,5 +162,10 @@ public class NettyClient implements Runnable, Operator {
 	
 	public void disconnect() {
 		this.channel.channel().close(this.channel.channel().voidPromise());
+	}
+
+	@Override
+	public ChannelFuture apply(Packet packet, Channel channel) {
+		return channel.writeAndFlush(packet).syncUninterruptibly();
 	}
 }

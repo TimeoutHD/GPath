@@ -13,7 +13,6 @@ public abstract class PacketEncoder extends MessageToByteEncoder<Packet> {
 		if(packetClass != null) {
 			output.writeInt(packet.getID());
 			packet.write(output);
-			System.out.println("Ich habe encoded!");
 		} else throw new IllegalArgumentException("Packet-ID is not in Use");
 	}
 

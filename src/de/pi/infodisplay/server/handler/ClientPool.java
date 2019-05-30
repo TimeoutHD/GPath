@@ -1,6 +1,5 @@
 package de.pi.infodisplay.server.handler;
 
-import java.security.InvalidKeyException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -10,7 +9,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
 import de.pi.infodisplay.Main;
-import de.pi.infodisplay.server.Server;
 import de.pi.infodisplay.server.security.ClientUser;
 import de.pi.infodisplay.shared.packets.PacketClientOutAuthorizeUser;
 import de.pi.infodisplay.shared.packets.PacketServerOutAuthorizeUser;
@@ -29,12 +27,9 @@ public class ClientPool extends ChannelHandlerAdapter {
 	private static final Map<User, List<AuthentificationKey>> usedKeys = new ConcurrentHashMap<>(Integer.MAX_VALUE);
 	
 	private ChannelFuture serverChannel;
-	
-	private Server parent;
-	
-	public ClientPool(Server parent, ChannelFuture future) {
+		
+	public ClientPool(ChannelFuture future) {
 		this.serverChannel = future;
-		this.parent = parent;
 	}
 	
 	public ClientUser connect(SocketChannel channel) {
@@ -49,7 +44,7 @@ public class ClientPool extends ChannelHandlerAdapter {
 				try {
 					connection.authorize(loggedUser, key);
 					usedKeys.get(loggedUser).add(key);
-				} catch (InvalidKeyException e) {
+				} catch (IllegalArgumentException e) {
 					Main.LOG.log(Level.SEVERE, "Illegal authorization: ", e);
 				}
 			}

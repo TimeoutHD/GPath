@@ -7,14 +7,9 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 
 import de.pi.infodisplay.client.Client;
-import de.pi.infodisplay.shared.packets.PacketClientOutAuthorizeUser;
 import de.pi.infodisplay.shared.packets.PacketClientOutInfoUpdate;
 
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.awt.TextArea;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
 
 public class MainWindow {
 
@@ -62,22 +57,18 @@ public class MainWindow {
 		menuBar.add(mnDatei);
 		
 		JMenuItem mntmVerbinden = new JMenuItem("Verbinden...");
-		mntmVerbinden.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
+		mntmVerbinden.addActionListener(action -> {
 				ConnectDialog dialog = new ConnectDialog(parent);
 				dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 				dialog.setVisible(true);
-			}
 		});
 		mnDatei.add(mntmVerbinden);
 		
 		JMenuItem mntmDatenstandAktualisieren = new JMenuItem("Datenstand aktualisieren");
 		mnDatei.add(mntmDatenstandAktualisieren);
-		mntmDatenstandAktualisieren.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
+		mntmDatenstandAktualisieren.addActionListener(action -> {
 				PacketClientOutInfoUpdate update = new PacketClientOutInfoUpdate();
 				parent.getNettyClient().sendPacket(update);
-			}
 		});
 		
 		JMenuItem mntmBeenden = new JMenuItem("Beenden");

@@ -9,7 +9,7 @@ import de.pi.infodisplay.client.netty.NettyClient;
  *
  */
 public class Client {
-	
+
 	/**
 	 * Dieses Field ist eine Konstante für den IPv4-Regex.
 	 * Ein Regex kann in jeder Programmiersprache Strings auf Formatierungen überprüfen.

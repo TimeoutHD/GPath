@@ -72,10 +72,12 @@ public class MySQL {
 	 * @throws SQLException Wenn es ein Fehler bei der Konvertierung gab
 	 */
 	private PreparedStatement convertStatement(String statement, String[] args) throws SQLException {
-		//Do not close this Statement here!!
-		PreparedStatement ps = connection.prepareStatement(statement);
-		for(int i = 0; i < args.length; i++) ps.setObject(i +1, args[i]);
-		return ps;
+		if(statement != null) {
+			//Do not close this Statement here!!
+			PreparedStatement ps = connection.prepareStatement(statement);
+			for(int i = 0; i < args.length; i++) ps.setObject(i +1, args[i]);
+			return ps;
+		} else throw new IllegalArgumentException("Statement cannot be null");
 	}
 	
 	/**
@@ -121,24 +123,23 @@ public class MySQL {
 		
 		private final List<Tuple> tuples = new ArrayList<>();
 		
-		private Column<Object>[] columns;
+		private Column[] columns;
 		
-		@SuppressWarnings("unchecked")
 		public Table(ResultSet rs) throws SQLException {
 			// Columnanzahl definieren.
-			columns = (Column<Object>[]) new Column<?>[rs.getMetaData().getColumnCount()];
+			columns = new Column[rs.getMetaData().getColumnCount()];
 			for(int i = 0; i < columns.length; i++) {
 				// Columns initialisieren
-				columns[i] = new Column<>(rs.getMetaData().getColumnName(i));
+				columns[i] = new Column(rs.getMetaData().getColumnName(i));
 			}
 			
 			// Werte in Tuplen und Columns speichern
 			int index = 0;
 			while(rs.next()) {
-				Element<?>[] cache = new Element<?>[columns.length];
+				String[] cache = new String[columns.length];
 				for(int i = 0; i < columns.length; i++) {
-					cache[i] = new Element<Object>((Column<Object>) columns[i], rs.getObject(i));
-					columns[i].addValue((Element<Object>) cache[i]);
+					cache[i] = rs.getString(i);
+					columns[i].addValue(cache[i]);
 				}
 				
 				tuples.add(new Tuple(index, cache));
@@ -147,19 +148,36 @@ public class MySQL {
 		}
 		
 		/**
-		 * Gibt ein bestimmtes Element aus der Relation zurück. Dabei muss der Attributname (Spaltenname) und die Zeile
-		 * angegeben werden. Der Wert kann dann mit der Methode {@link Element#getValue()} bekommen werden, da die
-		 * Element-Klasse als Wrapper dient.
+		 * Gibt einen bestimmten Wert aus der Relation zurück. Dabei muss der Attributname (Spaltenname) und die Zeile
+		 * angegeben werden. 
 		 * 
 		 * @param columnName Der Attributname (Spaltenname) 
 		 * @param index Die Zeilenzahl
 		 * @return Das Element (Die Zelle) der Relation an der Stelle
 		 */
-		public Element<?> getElement(String columnName, int index) {
-			for(Column<?> column : columns)
+		public String getValue(String columnName, int index) {
+			for(Column column : columns)
 				if(column.getName().equalsIgnoreCase(columnName)) return column.getValue(index);
 			
 			throw new IllegalArgumentException("Could not find Column " + columnName);
+		}
+		
+		/**
+		 * Gibt eine Spalte (Tuple) der Relation zurück. Dabei ist der Index von 0 aus zu zählen.
+		 * @param index der Index
+		 * @return Die komplette Spalte
+		 */
+		public Tuple getTuple(int index) {
+			int length = columns.length;
+			String[] values = new String[length];
+			String[] columnNames = new String[length];
+			
+			for(int i = 0; i < length; i++) {
+				columnNames[i] = columns[i].getName();
+				values[i] = columns[i].getValue(index);
+			}
+			
+			return new Tuple(index, columnNames, values);
 		}
 		
 		/**
@@ -172,47 +190,13 @@ public class MySQL {
 	}
 	
 	/**
-	 * Das ist eine Wrapper-Klasse für die Werte, die aus der Relation gewonnen werden.
-	 * @author Timeout
-	 *
-	 * @param <T> Der Datentyp des Attributwertes
-	 */
-	public static class Element<T> {
-		
-		private Column<T> column;
-		private T value;
-		
-		public Element(Column<T> column, T value) {
-			this.column = column;
-			this.value = value;
-		}
-		
-		/**
-		 * Gibt den Wert dieses Elements zurück. Der Wert ist das, was in der Zeile steht.
-		 * @return Den Wert des Elements
-		 */
-		public T getValue() {
-			return value;
-		}
-		
-		/**
-		 * Gibt das Attribut (die Spalte der Relation) zurück, wo sich der Wert befindet.
-		 * @return das Attribut
-		 */
-		public Column<T> getColumn() {
-			return column;
-		}
-	}
-	
-	/**
 	 * Das ist ein Attribut (eine Spalte) der Relation. Eine Spalte hat einen Namen und mehrere Attributwerte.
 	 * @author Timeout
 	 *
-	 * @param <T> Der Datentyp des jeweiligen Wertes
 	 */
-	public static class Column<T> {
+	public static class Column {
 		
-		private final List<Element<T>> values = new ArrayList<>();
+		private final List<String> values = new ArrayList<>();
 		
 		private String name;
 		
@@ -231,13 +215,13 @@ public class MySQL {
 		/**
 		 * Gibt den Attributwert an einer bestimmten Stelle zurück. Dafür muss eine Zeile angegeben werden.
 		 * @param index die Zeile, wo sich der gesuchte Attributwert befindet
-		 * @return Der Attributwert als Element. Der richtige Wert kann dann mit {@link Element#getValue()} bekommen werden.
+		 * @return Der Attributwert als String.
 		 */
-		public Element<T> getValue(int index) {
+		public String getValue(int index) {
 			return index < values.size() ? values.get(index) : null;
 		}
 		
-		private void addValue(Element<T> element) {
+		public void addValue(String element) {
 			values.add(element);
 		}
 	}
@@ -250,11 +234,13 @@ public class MySQL {
 	public static class Tuple {
 		
 		private int index;
-		private Element<?>[] values;
+		private String[] columnNames;
+		private String[] values;
 		
-		public Tuple(int i, Element<?>... elements) {
+		public Tuple(int i, String[] columnNames, String... elements) {
 			this.index = i;
 			this.values = elements.clone();
+			this.columnNames = columnNames.clone();
 		}
 		
 		/**
@@ -268,29 +254,38 @@ public class MySQL {
 		/**
 		 * Gibt den Attributwert an einem Attrubut (einer Spalte) zurück
 		 * @param column die Zahl der Spalte
-		 * @return Der Attributwert als Element. Der richtige Wert kann dann mit {@link Element#getValue()} bekommen werden.
+		 * @return Der Attributwert als String.
 		 */
-		public Element<?> getElement(int column) {
+		public String getElement(int column) {
 			return values[column];
 		}
 				
 		/**
-		 * Gibt den Attrubutwert an einem Attrubut (einer Spalte) zurück
+		 * Gibt den Attrubutwert an einem Attrubut (einer Spalte) zurück. Diese Methode ignoriert Case
 		 * @param columnName der Name des Attributs.
-		 * @return Der Attributwert als Element. Der richtige Wert kann dann mit {@link Element#getValue()} bekommen werden.
+		 * @return Der Attributwert als String.
+		 * 
+		 * @throws IllegalArgumentException Wenn columnName null ist.
+		 * @throws IllegalStateException Wenn der gesuchte columnName nicht gefunden werden kann
 		 */
-		public Element<?> getElement(String columnName) {
-			for(Element<?> element : values) {
-				if(element.getColumn().getName().equalsIgnoreCase(columnName)) return element;
-			}
-			throw new IllegalArgumentException("Unable to find Column " + columnName);
+		public String getElement(String columnName) {
+			if(columnName != null) {
+				int i;
+				for(i = 0; i < columnNames.length; i++) {
+					if(!columnName.equalsIgnoreCase(columnNames[i]) && (i == columnNames.length -1)) {
+						throw new IllegalStateException("Cannot find Column " + columnName);
+					} else if(columnName.equalsIgnoreCase(columnName)) break;
+				}
+				
+				return values[i];
+			} else throw new IllegalArgumentException("columnName cannot be null");
 		}
 		
 		/**
 		 * Gibt alle Attributwerte als Liste zurück. Sortiert nach der richtigen Reihenfolge der Attribute in der Relation
 		 * @return alle Attribute als Liste.
 		 */
-		public List<Element<?>> getTupleValues() {
+		public List<String> getTupleValues() {
 			return Arrays.asList(values);
 		}
 	}

@@ -1,14 +1,8 @@
 package de.pi.infodisplay.server.handler;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.nio.file.FileVisitResult;
-import java.nio.file.FileVisitor;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -51,7 +45,7 @@ public class InformationUploadHandler extends ChannelHandlerAdapter {
 				for(int i = 0; i < Integer.MAX_VALUE; i++) {
 					if(i < Integer.MAX_VALUE - 1) {
 						File folder = new File(infoFolder, String.valueOf(i));
-						if(folder.exists() && !folder.isDirectory()) folder.delete();
+						if(folder.exists() && !folder.isDirectory()) Files.delete(folder.toPath());
 						if(!folder.exists()) {
 							folder.mkdirs();
 							infoFolder = folder;

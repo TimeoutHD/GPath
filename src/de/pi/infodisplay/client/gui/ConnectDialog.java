@@ -16,8 +16,6 @@ import javax.swing.SwingConstants;
 import de.pi.infodisplay.client.Client;
 import de.pi.infodisplay.shared.packets.PacketClientOutAuthorizeUser;
 
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
@@ -30,7 +28,7 @@ public class ConnectDialog extends JDialog {
 	
 	private final JPanel contentPanel = new JPanel();
 	
-	private Client parent;
+	private Client clientParent;
 	private JTextField hostField;
 	private JTextField portField;
 
@@ -38,7 +36,7 @@ public class ConnectDialog extends JDialog {
 	 * Create the dialog.
 	 */
 	public ConnectDialog(Client parent) {
-		this.parent = parent;
+		this.clientParent = parent;
 		setTitle("Mit Server verbinden");
 		setBounds(100, 100, 450, 300);
 		getContentPane().setLayout(new BorderLayout());
@@ -46,17 +44,16 @@ public class ConnectDialog extends JDialog {
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
 		contentPanel.setLayout(null);
 		
-			JLabel title = new JLabel("Mit Server verbinden");
-			title.setHorizontalAlignment(SwingConstants.CENTER);
-			title.setBounds(152, 0, 118, 43);
-			title.setLabelFor(this);
-			title.setFont(new Font("Arial", Font.PLAIN, 12));
-			contentPanel.add(title);
+		JLabel title = new JLabel("Mit Server verbinden");
+		title.setHorizontalAlignment(SwingConstants.CENTER);
+		title.setBounds(152, 0, 118, 43);
+		title.setLabelFor(this);
+		title.setFont(new Font("Arial", Font.PLAIN, 12));
+		contentPanel.add(title);
 		
-		
-			JTextField usernameField = new JTextField();
-			usernameField.setBounds(134, 131, 276, 22);
-			contentPanel.add(usernameField);
+		JTextField usernameField = new JTextField();
+		usernameField.setBounds(134, 131, 276, 22);
+		contentPanel.add(usernameField);
 		
 		JLabel usernameTitle = new JLabel("Benutzername:");
 		usernameTitle.setHorizontalAlignment(SwingConstants.CENTER);
@@ -91,45 +88,40 @@ public class ConnectDialog extends JDialog {
 		portTitle.setHorizontalAlignment(SwingConstants.CENTER);
 		portTitle.setBounds(10, 85, 118, 20);
 		contentPanel.add(portTitle);
-		{
-			JPanel buttonPane = new JPanel();
-			buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
-			getContentPane().add(buttonPane, BorderLayout.SOUTH);
-			{
-				JButton okButton = new JButton("OK");
-				okButton.addActionListener(new ActionListener() {
-					
-					public void actionPerformed(ActionEvent e) {
-						String host = hostField.getText();
-						String portString = portField.getText();
-						if(portString.matches("\\d+")) {
-							int port = Integer.valueOf(portString);
+		
+		JPanel buttonPane = new JPanel();
+		buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
+		getContentPane().add(buttonPane, BorderLayout.SOUTH);
+		
+		JButton okButton = new JButton("OK");
+		okButton.addActionListener(action -> {
+			String host = hostField.getText();
+			String portString = portField.getText();
+			if(portString.matches("\\d+")) {
+				int port = Integer.parseInt(portString);
 							
-							if(parent.connectToServer(host, port)) {
-								String username = usernameField.getText();
-								String password = String.valueOf(passwordField.getPassword());
-								if(username != null && !username.isEmpty() && password != null && !password.isEmpty()) {
-									PacketClientOutAuthorizeUser authorize = new PacketClientOutAuthorizeUser(usernameField.getText(), String.valueOf(passwordField.getPassword()));
-									parent.getNettyClient().sendPacket(authorize);
-								}
-							}
-						}
+				if(parent.connectToServer(host, port)) {
+					String username = usernameField.getText();
+					String password = String.valueOf(passwordField.getPassword());
+					if(username != null && !username.isEmpty() && password != null && !password.isEmpty()) {
+						PacketClientOutAuthorizeUser authorize = new PacketClientOutAuthorizeUser(usernameField.getText(), String.valueOf(passwordField.getPassword()));
+						parent.getNettyClient().sendPacket(authorize);
 					}
-				});
-				okButton.setActionCommand("OK");
-				buttonPane.add(okButton);
-				getRootPane().setDefaultButton(okButton);
+				}
 			}
-			{
-				JButton cancelButton = new JButton("Cancel");
-				cancelButton.setActionCommand("Cancel");
-				buttonPane.add(cancelButton);
-			}
-		}
+		});
+				
+		okButton.setActionCommand("OK");
+		buttonPane.add(okButton);
+		getRootPane().setDefaultButton(okButton);
+			
+		JButton cancelButton = new JButton("Cancel");
+		cancelButton.setActionCommand("Cancel");
+		buttonPane.add(cancelButton);
 	}
 	
 	public Client getClient() {
-		return parent;
+		return clientParent;
 	}
 	
 	public void closeDialog() {

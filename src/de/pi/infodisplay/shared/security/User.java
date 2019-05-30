@@ -13,6 +13,8 @@ import de.pi.infodisplay.server.security.ClientUser;
 import de.timeout.libs.MySQL.Table;
 
 public class User {
+	
+	private static final String SQL_ERROR = "Cannot result SQL-Statement";
 		
 	private UUID id;
 	private String name;
@@ -38,10 +40,10 @@ public class User {
 	public static User getFromDataBaseByName(String name) {
 		try {
 			Table table = Server.getMySQL().executeStatement("SELECT * FROM users WHERE name = ?", name);
-			return new User(UUID.fromString((String) table.getElement("uuid", 0).getValue()),
-					table.getElement("name", 0).getValue().toString());
+			return new User(UUID.fromString(table.getValue("uuid", 0)),
+					table.getValue("name", 0));
 		} catch (SQLException e) {
-			Main.LOG.log(Level.SEVERE, "Cannot result SQL-Statement", e);
+			Main.LOG.log(Level.SEVERE, SQL_ERROR, e);
 		}
 		return null;
 	}
@@ -49,9 +51,9 @@ public class User {
 	public static User getFromDatabaseByUUID(UUID uuid) {
 		try {
 			Table table = Server.getMySQL().executeStatement("SELECT * from users WHERE uuid = ?", uuid.toString());
-			return new User(uuid, table.getElement("name", 0).getValue().toString());
+			return new User(uuid, table.getValue("name", 0));
 		} catch (SQLException e) {
-			e.printStackTrace();
+			Main.LOG.log(Level.SEVERE, SQL_ERROR, e);
 		}
 		return null;
 	}
@@ -103,7 +105,7 @@ public class User {
 	 * @throws SQLException Wenn ein unerwarteter MySQL-Fehler passiert
 	 */
 	public boolean compare(String password) throws SQLException {
-		return Server.getMySQL().executeStatement("SELECT password FROM users WHERE id = ?", id.toString()).getElement("password", 0).getValue().toString().equals(password);
+		return Server.getMySQL().executeStatement("SELECT password FROM users WHERE id = ?", id.toString()).getValue("password", 0).equals(password);
 	}
 	
 	/**
@@ -149,7 +151,7 @@ public class User {
 			Logger.getGlobal().log(Level.SEVERE, "Critical Error with Database", e);
 			return false;
 		}
-		return Integer.valueOf((String) table.getElement("admin", 0).getValue()) == 1;
+		return Integer.valueOf(table.getValue("admin", 0)) == 1;
 	}
 
 	@Override

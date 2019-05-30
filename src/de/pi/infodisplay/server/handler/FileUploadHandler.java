@@ -4,12 +4,14 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.URI;
 import java.nio.channels.FileChannel;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.logging.Level;
 
 import de.pi.infodisplay.Main;
-
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
@@ -37,18 +39,20 @@ import io.netty.util.CharsetUtil;
 public class FileUploadHandler extends SimpleChannelInboundHandler<HttpObject> {
 	
 	private final HttpDataFactory factory = new DefaultHttpDataFactory(true);
-	
-	private File dataFolder;
+	private final Map<String, File> folders = new LinkedHashMap<>();
 	
 	private HttpRequest request;
 	private HttpPostRequestDecoder decoder;
 	
-	public FileUploadHandler(File dataFolder) {
-		this.dataFolder = dataFolder;
+	public FileUploadHandler() {
+		this.request = null;
+		this.decoder = null;
 	}
 
 	@Override
 	protected void messageReceived(ChannelHandlerContext ctx, HttpObject httpObject) throws Exception {
+		String remoteAddress = ((InetSocketAddress)ctx.channel().remoteAddress()).getAddress().getHostAddress();
+		folders.put(remoteAddress, InformationUploadHandler.readAndFlushCache(remoteAddress));
 		if(httpObject instanceof HttpRequest) {
 			request = (HttpRequest) httpObject;
 			URI uri = new URI(request.uri());
@@ -71,6 +75,7 @@ public class FileUploadHandler extends SimpleChannelInboundHandler<HttpObject> {
 	}
 	
 	private void readChunk(ChannelHandlerContext ctx) {
+		String remoteAddress = ((InetSocketAddress)ctx.channel().remoteAddress()).getAddress().getHostAddress();
 		while(decoder.hasNext()) {
 			InterfaceHttpData data = decoder.next();
 			if(data != null) {
@@ -79,12 +84,13 @@ public class FileUploadHandler extends SimpleChannelInboundHandler<HttpObject> {
 					case Attribute:
 						break;
 					case FileUpload:
-						final File file = new File(dataFolder, ((FileUpload) data).getFilename());
+						final File file = new File(folders.get(remoteAddress), "data.jpg");
 						try { 
 							copyData(ctx, file, (FileUpload) data);
 						} catch (IOException e) {
 							Main.LOG.log(Level.WARNING, "Kann die Datei " + file.getName() + " nicht erstellen", e);
 						}
+						folders.remove(remoteAddress);
 						break;
 					default:
 						break;
