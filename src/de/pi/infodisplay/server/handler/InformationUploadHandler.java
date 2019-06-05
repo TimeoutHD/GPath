@@ -11,7 +11,9 @@ import de.pi.infodisplay.shared.packets.PacketClientOutAddInformation;
 import de.pi.infodisplay.shared.security.User;
 import io.netty.channel.ChannelHandlerAdapter;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelHandler.Sharable;
 
+@Sharable
 public class InformationUploadHandler extends ChannelHandlerAdapter {
 	
 	private static final Map<String, File> folderCache = new LinkedHashMap<String, File>();
@@ -54,7 +56,11 @@ public class InformationUploadHandler extends ChannelHandlerAdapter {
 					} else throw new IndexOutOfBoundsException("Too many informations. Please delete Information before create a new one");
 				}
 				
-				addFileToCache(((InetSocketAddress) ctx.channel().remoteAddress()).getAddress().getHostAddress(), infoFolder);
+				String ip = ((InetSocketAddress) ctx.channel().remoteAddress()).getAddress().getHostAddress();
+				User user = parent.getClientManager().getUser(ip);
+				addFileToCache(ip, infoFolder);
+				if(parent.getClientManager().isAuthorized(ip, user))
+					Server.getMySQL().executeVoidStatement("INSERT INTO Information(creatorID, path) VARIABLES(?, ?)", user.getUniqueId().toString(), new File(infoFolder, "data.png").getAbsolutePath());
 			}
 		}
 	}

@@ -57,11 +57,7 @@ public class ClientPool extends ChannelHandlerAdapter {
 			PacketClientOutAuthorizeUser packet = (PacketClientOutAuthorizeUser) msg;
 			User user = User.getFromDataBaseByName(packet.getUsername());
 			PacketServerOutAuthorizeUser authorizeOut;
-			if(user.compare(packet.getPassword())) {
-				authorizeOut = new PacketServerOutAuthorizeUser(user.getUniqueId(), true);
-			} else {
-				authorizeOut = new PacketServerOutAuthorizeUser(user.getUniqueId(), false);
-			}
+			authorizeOut = new PacketServerOutAuthorizeUser(user.getUniqueId(), user.compare(packet.getPassword()));
 			
 			ctx.channel().writeAndFlush(authorizeOut, ctx.voidPromise());
 		}
@@ -91,10 +87,20 @@ public class ClientPool extends ChannelHandlerAdapter {
 	}
 	
 	public ClientUser isConnected(String ip, User user) {
-		for(ClientUser cUser : clientConnections){
-			if(cUser.getChannel().localAddress().getAddress().getHostAddress().equalsIgnoreCase(ip) &&
-					cUser.getLoggedUser().equals(user))  
-				return cUser;
+		if(ip != null && user != null) {
+			for(ClientUser cUser : clientConnections){
+				if(cUser.getChannel().remoteAddress().getAddress().getHostAddress().equalsIgnoreCase(ip) &&
+						cUser.getLoggedUser().equals(user))  
+					return cUser;
+			}
+		}
+		return null;
+	}
+	
+	public User getUser(String ip) {
+		for(ClientUser user : clientConnections) {
+			if(user.getChannel().remoteAddress().getAddress().getHostAddress().equalsIgnoreCase(ip))
+				return user.getLoggedUser();
 		}
 		return null;
 	}

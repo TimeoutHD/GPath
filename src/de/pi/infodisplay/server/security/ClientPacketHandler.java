@@ -4,15 +4,14 @@ import de.pi.infodisplay.shared.handler.PacketHandler;
 
 public class ClientPacketHandler extends PacketHandler {
 
-	private ClientUser owner;
+	private ClientUser user;
 	
-	public ClientPacketHandler(ClientUser owner) {
-		super(owner);
-		this.owner = owner;
-	}
-	
-	public ClientUser getOwner() {
-		return owner;
+	public ClientPacketHandler(ClientUser user) {
+		super(user);
+		this.user = user;
 	}
 
+	public ClientUser getUser() {
+		return user;
+	}
 }

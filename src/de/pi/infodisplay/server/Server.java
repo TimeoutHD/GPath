@@ -79,13 +79,13 @@ public class Server implements Operator {
 	 */
 	private static final MySQL mysql = new MySQL("localhost", 3306, "informationdisplay");
 	
-	static {
-		try {
-			mysql.connect("pi", "piA");
-		} catch (SQLException e) {
-			Main.LOG.log(Level.SEVERE, "Could not connect to MySQL-Database", e);
-		}
-	}
+//	static {
+//		try {
+//			mysql.connect("pi", "piA");
+//		} catch (SQLException e) {
+//			Main.LOG.log(Level.SEVERE, "Could not connect to MySQL-Database", e);
+//		}
+//	}
 	
 	/**
 	 * Erstellt einen NettyServer, der den angegebenen Port besetzt.
@@ -98,8 +98,6 @@ public class Server implements Operator {
 		// Bootstrap für den Server
 		try(EventLoopGroup bossGroup = EPOLL ? new EpollEventLoopGroup() : new NioEventLoopGroup(); 
 				EventLoopGroup workerGroup = EPOLL ? new EpollEventLoopGroup() : new NioEventLoopGroup()) {	
-			// MySQL-Verbindung aufbauen
-			mysql.connect("pi", "piA");
 			// Neue Datenbanken sehen.
 			initializeDatabases();
 			clientManager = new ClientPool(serverChannel);
@@ -121,7 +119,8 @@ public class Server implements Operator {
 								clientManager,
 								new HttpRequestDecoder(),
 								new HttpRequestEncoder(),
-								fileUploadManager);
+								fileUploadManager,
+								informationManager);
 						Main.LOG.log(Level.INFO, "Connect -> " + channel.remoteAddress().getHostName() + ":" +
 								channel.remoteAddress().getPort());
 					}				
@@ -168,8 +167,8 @@ public class Server implements Operator {
 	
 	private void initializeDatabases() throws SQLException {
 		if(mysql.isConnected()) {
-			mysql.executeVoidStatement("CREATE TABLE IF NOT EXISTS Information(id INT(4) PRIMARY KEY, creatorID VARCHAR(36), path TEXT)");
-			mysql.executeVoidStatement("CREATE TABLE IF NOT EXISTS User(uuid VARCHAR(36) PRIMARY KEY, name VARCHAR(100), password TEXT, admin TINYINT(1))");
+			mysql.executeVoidStatement("CREATE TABLE IF NOT EXISTS Information(id INT(4), creatorID VARCHAR(36), path TEXT, PRIMARY KEY(id), FOREIGN KEY (creatorID) REFERENCES User(uuid)");
+			mysql.executeVoidStatement("CREATE TABLE IF NOT EXISTS User(uuid VARCHAR(36), name VARCHAR(100), password TEXT, admin TINYINT(1), PRIMARY KEY (uuid))");
 		}
 	}
 
