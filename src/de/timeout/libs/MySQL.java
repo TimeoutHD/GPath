@@ -6,126 +6,62 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
-import java.util.Queue;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import com.mysql.cj.jdbc.Driver;
 
 /**
- * This class is a hook into a MySQL-Database.
- * 
- * 
- * @author Timeout
+ * Diese Klasse dient als Verbindung zur MySQL-Datenbank.
+ * @author timeout
+ *
  */
 public class MySQL {
-	
-	private static final String SQL_ERROR = "Could not create Statement";
 
-	private String host, database, username, password;
+	private String host, database;
 	private int port;
 	
 	private Connection connection;
 	
-	public MySQL(String host, int port, String database, String username, String password) {
+	public MySQL(String host, int port, String database) {
 		this.host = host;
-		this.port = port;
 		this.database = database;
-		this.username = username;
-		this.password = password;
-
-		connect();
+		this.port = port;			
 	}
 	
 	/**
-	 * Verbindet zur MySQL-Datenbank
+	 * Verbindet zur MySQL-Datenbank, benötigt jedoch einen Benutzernamen und das dazugehörige Passwort.
+	 * 
+	 * @param username Der Benutzername der Programms
+	 * @param password Das dazugehörige Password
+	 * @return Das Resultat, ob es verbunden ist oder nicht.
+	 * @throws SQLException Wenn es einen unerwarteten Fehler gibt
 	 */
-	private void connect() {
-		try {
-			Class.forName("com.mysql.jdbc.Driver");
-			connection = DriverManager.getConnection("jdbc:mysql://" + host + ":" + port + "/" + database + "?autoReconnect=true", username, password);
-		} catch (SQLException | ClassNotFoundException e) {
-			Logger.getGlobal().log(Level.SEVERE, "Verbindung zur Datenbank kann nicht aufgebaut werden", e);
-		}
-	}
-	
-	/**
-	 * Trennt doe Verbindung zur MySQL-Datenbank
-	 */
-	public void close() {
-		if(isConnected()) {
-			try {
-				connection.close();
-			} catch (SQLException e) {
-				Logger.getGlobal().log(Level.SEVERE, "Die Verbindung konnte nicht geschlossen werden", e);
-			}
-		}
-	}
-	
-	/**
-	 * Überprüft, ob die Verbindung aufgebaut ist.
-	 * Dabei wird ein leeres Void-Statement an die Datenbank gesendet. 
-	 * Schlägt diese fehl, so wird eine Exception geschmissen, die schlussendlich false zurückgibt.
-	 * @return ist verbunden
-	 */
-	public boolean isConnected() {
-		try {
-			connection.createStatement();
+	public boolean connect(String username, String password) throws SQLException {
+		if(!isConnected()) {
+			DriverManager.registerDriver(new Driver());
+			connection = DriverManager.getConnection("jdbc:mysql://" + host + ":" + port + "/" + database + "?autoReconnect=true&useUnicode=true&useJDBCCompilantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC", username, password);
 			return true;
-		} catch (SQLException e) {
-			return false;
 		}
+		return false;
 	}
 	
 	/**
-	 * Gibt die MySQL-Verbindung zurück
-	 * @return die Verbindung
+	 * Prüft, ob eine Verbindung genutzt werden kann. Wenn keine Verbindung besteht oder die Verbindung geschlossen ist,
+	 * ist das Ergebnis false. Ansonsten kann die Verbindung genutzt werden.
+	 * @return
+	 * @throws SQLException
+	 */
+	public boolean isConnected() throws SQLException {
+		return connection != null && !connection.isClosed();
+	}
+	
+	/**
+	 * Gibt die aktuelle Verbindung zurück. 
+	 * @return die aktuelle Verbindung als Connection-Interface
 	 */
 	public Connection getConnection() {
 		return connection;
-	}
-	
-	/**
-	 * 
-	 * Gibt ein Objekt an einer gewissen Stelle der Tabelle zurück, die im Statement definiert wird.
-	 * 
-	 * @param preparedStatement Das SQL-Statement
-	 * @param args Die Argumente, falls vorhanden
-	 * @return Das gesuchte Object als String
-	 * @throws SQLException Wenn das Statement falsch ist.
-	 */
-	public String getValue(String preparedStatement, String... args) throws SQLException {
-		if(!isConnected()) connect();
-		try(PreparedStatement ps = convertStatement(preparedStatement, args)) {
-			String ans = null;
-			try(ResultSet rs = ps.executeQuery()) {
-				while(rs.next()) ans = rs.getString(getDistinct(preparedStatement));
-			}
-			return ans;
-		} catch(SQLException e) {
-			throw new IllegalArgumentException(SQL_ERROR, e);
-		}
-	}
-	
-	/**
-	 * Gibt den gesuchten Spaltennamen zurück
-	 * @param preparedStatement Das Statement
-	 * @return der gesuchte Spaltenname
-	 * @throws SQLException Wenn das Statement falsch ist.
-	 */
-	private String getDistinct(String preparedStatement) {
-		String[] split = preparedStatement.split(" ");
-		List<String> args = new ArrayList<String>();
-		
-		boolean copy = false;
-		for(int i = 0; i < split.length; i++) {
-			if(copy) {
-				if("FROM".equalsIgnoreCase(split[i])) break;
-				else args.add(split[i]);
-			} else if("SELECT".equalsIgnoreCase(split[i])) copy = true;
-		}
-		return String.join(" ", args);
 	}
 	
 	/**
@@ -138,88 +74,225 @@ public class MySQL {
 	private PreparedStatement convertStatement(String statement, String[] args) throws SQLException {
 		//Do not close this Statement here!!
 		PreparedStatement ps = connection.prepareStatement(statement);
-		int index = 0;
-		for(int i = 0; i < args.length; i++) {
-			ps.setString(index +1, args[index]);
-			index++;
-		}
+		for(int i = 0; i < args.length; i++) ps.setObject(i +1, args[i]);
 		return ps;
 	}
 	
 	/**
-	 * Gibt den Tabellennamen des Statements zurück
-	 * @param preparedStatement Das Statement
-	 * @return der Tabellenname
-	 * @throws SQLException Wenn kein Tabellenname existiert
+	 * Führt ein Void-Statement aus. Ein Void-Statement ist ein Statement, dass nur eine Erfolgsbestätigung sendet, anstatt
+	 * einer Relation. Diese Methode ist nützlich, wenn man die Befehle INSERT, UPDATE oder DELETE ausführen möchte.
+	 * 
+	 * @param statement Das Statement
+	 * @param variables Die Variablen in der richtigen Reihenfolge. Variablen können im Statement mit '?' erstellt werden.
+	 * @return die Erfolgsbestätigung als Boolean.
+	 * @throws SQLException Wenn im Syntax des MySQL-Statments ein Fehler vorliegt.
+	 * @throws IllegalStateException Wenn die Verbindung geschlossen oder nicht nutzbar ist, quasi wenn {@link MySQL#isConnected()} false zurückgibt.
 	 */
-	public String getTableName(String preparedStatement) throws SQLException {
-		String[] split = preparedStatement.split(" ");
-		for(int i = 0; i < split.length; i++) {
-			if("FROM".equalsIgnoreCase(split[i]))return split[i +1];
-		}
-		throw new IllegalArgumentException("Could not find tablename");
+	public boolean executeVoidStatement(String statement, String... variables) throws SQLException {
+		if(!isConnected()) {
+			return convertStatement(statement, variables).execute();
+		} else throw new IllegalStateException("Connection is closed. Please connect to a MySQL-Database before using any statements");
 	}
 	
 	/**
-	 * Diese Methode führt ein Void-Statement der Sprache SQL aus. 
-	 * Void-Statements sind Befehle, die keinen Rückgabewert besitzen. (Beispiel: INSERT, UPDATE, DELETE)
-	 * Sollte das Statement kein Void-Statement sein, so wird nichts passieren.
-	 * @param preparedStatement
-	 * @param args
+	 * Führt ein Statement aus und gibt eine geeignete Relation zurück. Diese Methode ist hauptsächlich beim Befehl SELECT sinnvoll.
+	 * Das zurückgegebene Objekt ist eine Table, die verschiedene Spalten (Columns) und Zeilen (Tuples) hat. Ein Datensatz wird
+	 * in dieser Klasse Element genannt. 
+	 *  
+	 * @param statement Das MySQL-Statement
+	 * @param variables Die Variablen in der richtigen Reihenfolge. Variablem können im Statement mit '?' erstellt werden
+	 * @return Die Relation als Table-Objekt.
+	 * @throws SQLException Wenn im Syntax des MySQL-Statments ein Fehler vorliegt.
+	 * @throws IllegalStateException Wenn die Verbindung geschlossen oder nicht nutzbar ist, quasi wenn {@link MySQL#isConnected()} false zurückgibt.
 	 */
-	public void executeVoidStatement(String preparedStatement, String... args) throws SQLException {
-		if(!isConnected())connect();
-		if(!"SELECT".startsWith(preparedStatement.toUpperCase(Locale.getDefault()))) {
-			try(PreparedStatement ps = convertStatement(preparedStatement, args)) {
-				ps.executeUpdate();
-			} catch(SQLException e) {
-				throw new IllegalArgumentException(SQL_ERROR, e);
-			}
-		}
+	public Table executeStatement(String statement, String... variables) throws SQLException {
+		if(!isConnected()) {
+			return new Table(convertStatement(statement, variables).executeQuery());
+		} else throw new IllegalStateException("Connection is closed. Please connect to a MySQL-Database before using any statements");
 	}
 	
 	/**
-	 * Überprüft, ob ein bestimmter Wert in der Datenbank ist.
-	 * Dabei ist die Genauigkeit vom Statement abhängig.
-	 * Beispiel: SELECT <Spalte> FROM <Tabellenname> WHERE <Spalte eines bekannten Werts> = <Wert an dieser bestimmten Spalte>
-	 * @param preparedStatement Das Statement
-	 * @param args Die Argumente des Statements (optional)
-	 * @return Das Ergebnis
-	 * @throws SQLException Wenn das Statement falsch ist.
+	 * Diese Klasse ist eine Instanz einer MySQL-Relation. Eine Relation besteht aus Attributen (Columns) und 
+	 * Zeilen (Rows). Ein Row wird in dieser Klasse Tuple genannt. Die Tuple ist wiederum in Elemente (Datensätze) unterteilt.  
+	 * @author Timeout
+	 *
 	 */
-	public boolean hasResult(String preparedStatement, String... args) throws SQLException {
-		if(!isConnected()) connect();
-		try(ResultSet rs = convertStatement(preparedStatement, args).executeQuery()) {
-			return rs.next();
-		} catch(SQLException e) {
-			throw new IllegalArgumentException(SQL_ERROR, e);
-		}
-	}
-	
-	/**
-	 * Gibt die gesamte Tabelle als zweidimensionalen String Array aus. Sollte das Statement nicht falsch sein, wird ein
-	 * leerer zweidimensionaler String Array zurückgegeben
-	 * @param preparedStatement das Statement
-	 * @param args die Argumente (optional)
-	 * @return die Tabelle als String[][]
-	 */
-	public String[][] executeStatement(String preparedStatement, String... args) throws SQLException {
-		if(!isConnected()) connect();
-		try(ResultSet rs = convertStatement(preparedStatement, args).executeQuery()) {
-			int columnCount = rs.getMetaData().getColumnCount();
-			Queue<String[]> rows = new LinkedBlockingQueue<>();
-			while(rs.next()) {
-				String[] array = new String[columnCount];
-				for(int i = 0; i < array.length; i++) array[i] = rs.getString(i);
-				rows.add(array);
+	public static class Table {
+		
+		private final List<Tuple> tuples = new ArrayList<>();
+		
+		private Column<Object>[] columns;
+		
+		@SuppressWarnings("unchecked")
+		public Table(ResultSet rs) throws SQLException {
+			// Columnanzahl definieren.
+			columns = (Column<Object>[]) new Column<?>[rs.getMetaData().getColumnCount()];
+			for(int i = 0; i < columns.length; i++) {
+				// Columns initialisieren
+				columns[i] = new Column<>(rs.getMetaData().getColumnName(i));
 			}
 			
-			String[][] map = new String[rows.size()][columnCount];
-			for(int i = 0; i < rows.size(); i++) map[i] = rows.poll();
-			return map;
-		} catch (SQLException e) {
-			Logger.getGlobal().log(Level.SEVERE, SQL_ERROR, e);
+			// Werte in Tuplen und Columns speichern
+			int index = 0;
+			while(rs.next()) {
+				Element<?>[] cache = new Element<?>[columns.length];
+				for(int i = 0; i < columns.length; i++) {
+					cache[i] = new Element<Object>((Column<Object>) columns[i], rs.getObject(i));
+					columns[i].addValue((Element<Object>) cache[i]);
+				}
+				
+				tuples.add(new Tuple(index, cache));
+				index++;
+			}
 		}
-		return new String[0][0];
+		
+		/**
+		 * Gibt ein bestimmtes Element aus der Relation zurück. Dabei muss der Attributname (Spaltenname) und die Zeile
+		 * angegeben werden. Der Wert kann dann mit der Methode {@link Element#getValue()} bekommen werden, da die
+		 * Element-Klasse als Wrapper dient.
+		 * 
+		 * @param columnName Der Attributname (Spaltenname) 
+		 * @param index Die Zeilenzahl
+		 * @return Das Element (Die Zelle) der Relation an der Stelle
+		 */
+		public Element<?> getElement(String columnName, int index) {
+			for(Column<?> column : columns)
+				if(column.getName().equalsIgnoreCase(columnName)) return column.getValue(index);
+			
+			throw new IllegalArgumentException("Could not find Column " + columnName);
+		}
+		
+		/**
+		 * Gibt zurück, ob eine Relation leer ist
+		 * @return Ob die Relation leer ist als Boolean
+		 */
+		public boolean isEmpty() {
+			return tuples.isEmpty();
+		}
 	}
+	
+	/**
+	 * Das ist eine Wrapper-Klasse für die Werte, die aus der Relation gewonnen werden.
+	 * @author Timeout
+	 *
+	 * @param <T> Der Datentyp des Attributwertes
+	 */
+	public static class Element<T> {
+		
+		private Column<T> column;
+		private T value;
+		
+		public Element(Column<T> column, T value) {
+			this.column = column;
+			this.value = value;
+		}
+		
+		/**
+		 * Gibt den Wert dieses Elements zurück. Der Wert ist das, was in der Zeile steht.
+		 * @return Den Wert des Elements
+		 */
+		public T getValue() {
+			return value;
+		}
+		
+		/**
+		 * Gibt das Attribut (die Spalte der Relation) zurück, wo sich der Wert befindet.
+		 * @return das Attribut
+		 */
+		public Column<T> getColumn() {
+			return column;
+		}
+	}
+	
+	/**
+	 * Das ist ein Attribut (eine Spalte) der Relation. Eine Spalte hat einen Namen und mehrere Attributwerte.
+	 * @author Timeout
+	 *
+	 * @param <T> Der Datentyp des jeweiligen Wertes
+	 */
+	public static class Column<T> {
+		
+		private final List<Element<T>> values = new ArrayList<>();
+		
+		private String name;
+		
+		public Column(String name) {
+			this.name = name;
+		}
+		
+		/**
+		 * Gibt den Namen des Attributs zurück
+		 * @return den Attributnamen
+		 */
+		public String getName() {
+			return name;
+		}
+		
+		/**
+		 * Gibt den Attributwert an einer bestimmten Stelle zurück. Dafür muss eine Zeile angegeben werden.
+		 * @param index die Zeile, wo sich der gesuchte Attributwert befindet
+		 * @return Der Attributwert als Element. Der richtige Wert kann dann mit {@link Element#getValue()} bekommen werden.
+		 */
+		public Element<T> getValue(int index) {
+			return index < values.size() ? values.get(index) : null;
+		}
+		
+		private void addValue(Element<T> element) {
+			values.add(element);
+		}
+	}
+	
+	/**
+	 * Diese Klasse vertritt eine gesamte Zeile der Relation.
+	 * @author timeout
+	 *
+	 */
+	public static class Tuple {
+		
+		private int index;
+		private Element<?>[] values;
+		
+		public Tuple(int i, Element<?>... elements) {
+			this.index = i;
+			this.values = elements.clone();
+		}
+		
+		/**
+		 * Gibt die Zeilenzahl der Tuple zurück (Wo sich die Zeile befindet)
+		 * @return die Zeilenzahl
+		 */
+		public int getIndex() {
+			return index;
+		}
+		
+		/**
+		 * Gibt den Attributwert an einem Attrubut (einer Spalte) zurück
+		 * @param column die Zahl der Spalte
+		 * @return Der Attributwert als Element. Der richtige Wert kann dann mit {@link Element#getValue()} bekommen werden.
+		 */
+		public Element<?> getElement(int column) {
+			return values[column];
+		}
+				
+		/**
+		 * Gibt den Attrubutwert an einem Attrubut (einer Spalte) zurück
+		 * @param columnName der Name des Attributs.
+		 * @return Der Attributwert als Element. Der richtige Wert kann dann mit {@link Element#getValue()} bekommen werden.
+		 */
+		public Element<?> getElement(String columnName) {
+			for(Element<?> element : values) {
+				if(element.getColumn().getName().equalsIgnoreCase(columnName)) return element;
+			}
+			throw new IllegalArgumentException("Unable to find Column " + columnName);
+		}
+		
+		/**
+		 * Gibt alle Attributwerte als Liste zurück. Sortiert nach der richtigen Reihenfolge der Attribute in der Relation
+		 * @return alle Attribute als Liste.
+		 */
+		public List<Element<?>> getTupleValues() {
+			return Arrays.asList(values);
+		}
+	}
+
 }

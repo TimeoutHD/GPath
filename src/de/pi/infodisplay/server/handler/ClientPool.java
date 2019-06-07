@@ -60,7 +60,7 @@ public class ClientPool extends ChannelHandlerAdapter {
 	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 		if(msg instanceof PacketClientOutAuthorizeUser) {
 			PacketClientOutAuthorizeUser packet = (PacketClientOutAuthorizeUser) msg;
-			User user = User.getFromDataBaseByName(parent.getMySQL(), packet.getUsername());
+			User user = User.getFromDataBaseByName(packet.getUsername());
 			PacketServerOutAuthorizeUser authorizeOut;
 			if(user.compare(packet.getPassword())) {
 				authorizeOut = new PacketServerOutAuthorizeUser(user.getUniqueId(), true);

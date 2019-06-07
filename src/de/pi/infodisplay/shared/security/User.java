@@ -5,37 +5,65 @@ import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
 import java.util.UUID;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import de.pi.infodisplay.Main;
 import de.timeout.libs.MySQL;
+import de.timeout.libs.MySQL.Table;
 
 public class User {
 	
-	private MySQL mysql;
+	private static final MySQL mysql = new MySQL("localhost", 3306, "informationdisplay");
+	
 	private UUID id;
 	private String name;
 	private String password;
-	private boolean isAdmin;
 	
-	public User(UUID id, String name, String password, MySQL db, boolean isEncoded) {
+	static {
+		try {
+			mysql.connect("pi", "piA");
+		} catch (SQLException e) {
+			Logger.getGlobal().log(Level.SEVERE, "Cannot connect to MySQL-Database", e);
+		}
+	}
+	
+	public User(UUID id, String name, String password, boolean isEncoded) {
 		this.id = id;
 		this.name = name;
 		this.password = isEncoded ? password : User.encode(password);
-		this.mysql = db;
 	}
 	
-	public static User getFromDataBaseByName(MySQL db, String name) {
+	public static User getFromDataBaseByName(String name) {
 		try {
-			String[][] table = db.executeStatement("SELECT * FROM users WHERE name = ?", name);
-			return new User(UUID.fromString(table[0][0]), table[0][1], table[0][2], db, true);
+			Table table = mysql.executeStatement("SELECT * FROM users WHERE name = ?", name);
+			return new User(UUID.fromString((String) table.getElement("uuid", 0).getValue()),
+					table.getElement("name", 0).getValue().toString(),
+					table.getElement("password", 0).getValue().toString(), true);
 		} catch (SQLException e) {
 			Main.LOG.log(Level.SEVERE, "Cannot result SQL-Statement", e);
 		}
 		return null;
 	}
 	
-	public static void setAdmin(User excutor, String username, boolean admin) {
-		
+//	public static void setAdmin(User executor, String username, boolean admin) {
+//		if(executor.isAdmin()) {
+//			
+//		}
+//	}
+	
+	public static String encode(String pw) {
+		try {
+			MessageDigest md = MessageDigest.getInstance("SHA-256");
+			md.update(pw.getBytes());
+			byte[] bytes = md.digest();
+	        StringBuilder sb = new StringBuilder();
+	        for(int i=0; i< bytes.length ;i++) 
+	        	sb.append(Integer.toString((bytes[i] & 0xff) + 0x100, 16).substring(1));
+	        return sb.toString();
+		} catch (NoSuchAlgorithmException e) {
+			Main.LOG.log(Level.SEVERE, "Cannot get encode code algorythm SHA-256", e);
+			return null;
+		}
 	}
 	
 	public void saveInDatabase() {
@@ -47,8 +75,9 @@ public class User {
 			}
 	}
 	
-	public boolean exists() throws SQLException{
-		return mysql.hasResult("SELECT uuid FROM users WHERE uuid = ?", id.toString());
+	public boolean exists() throws SQLException {
+		Table table = mysql.executeStatement("SELECT uuid FROM users WHERE uuid = ?", id.toString());
+		return !table.isEmpty();
 	}
 	
 	public boolean compare(String password) {
@@ -71,18 +100,14 @@ public class User {
 		return this.name;
 	}
 	
-	public static String encode(String pw) {
+	public boolean isAdmin() {
+		Table table = null;
 		try {
-			MessageDigest md = MessageDigest.getInstance("SHA-256");
-			md.update(pw.getBytes());
-			byte[] bytes = md.digest();
-	        StringBuilder sb = new StringBuilder();
-	        for(int i=0; i< bytes.length ;i++) 
-	        	sb.append(Integer.toString((bytes[i] & 0xff) + 0x100, 16).substring(1));
-	        return sb.toString();
-		} catch (NoSuchAlgorithmException e) {
-			Main.LOG.log(Level.SEVERE, "Cannot get encode code algorythm SHA-256", e);
-			return null;
+			table = mysql.executeStatement("SELECT admin FROM User WHERE uuid = ?", id.toString());
+		} catch (SQLException e) {
+			Logger.getGlobal().log(Level.SEVERE, "Critical Error with Database", e);
+			return false;
 		}
+		return Integer.valueOf((String) table.getElement("admin", 0).getValue()) == 1;
 	}
 }
