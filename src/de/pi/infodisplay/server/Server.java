@@ -5,13 +5,12 @@ import java.util.logging.Level;
 
 import de.pi.infodisplay.Main;
 import de.pi.infodisplay.server.handler.ClientPool;
-import de.pi.infodisplay.server.handler.FileUploadHandler;
 import de.pi.infodisplay.server.handler.InformationUploadHandler;
 import de.pi.infodisplay.server.security.ClientUser;
+import de.pi.infodisplay.shared.handler.FileUploadHandler;
 import de.pi.infodisplay.shared.packets.Packet;
 import de.pi.infodisplay.shared.security.Operator;
 import de.timeout.libs.MySQL;
-
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;

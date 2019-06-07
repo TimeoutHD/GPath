@@ -1,4 +1,4 @@
-package de.pi.infodisplay.server.handler;
+package de.pi.infodisplay.shared.handler;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.logging.Level;
 
 import de.pi.infodisplay.Main;
+import de.pi.infodisplay.server.handler.InformationUploadHandler;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
