@@ -15,7 +15,6 @@ import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 
 import de.pi.infodisplay.client.Client;
-import de.pi.infodisplay.shared.packets.PacketClientOutAuthorizeUser;
 import de.pi.infodisplay.shared.packets.PacketClientOutInfoUpdate;
 
 public class MainWindow {
@@ -97,16 +96,14 @@ public class MainWindow {
         mnNewMenu.add(mntmMitServerVerbinden);
         
         JMenuItem mntmDatenstandAktualisieren = new JMenuItem("Datenstand aktualisieren");
-		mnDatei.add(mntmDatenstandAktualisieren);
-		mntmDatenstandAktualisieren.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				PacketClientOutInfoUpdate update = new PacketClientOutInfoUpdate();
-				parent.getNettyClient().sendPacket(update);
-			}
+        mnNewMenu.add(mntmDatenstandAktualisieren);
+		mntmDatenstandAktualisieren.addActionListener(action -> {
+			PacketClientOutInfoUpdate update = new PacketClientOutInfoUpdate();
+			parent.getNettyClient().sendPacket(update);
 		});
 		
 		JMenuItem mntmBeenden = new JMenuItem("Beenden");
-		mnDatei.add(mntmBeenden);
+		mnNewMenu.add(mntmBeenden);
 		
 		JMenu mnBearbeiten = new JMenu("Bearbeiten");
 		menuBar.add(mnBearbeiten);
