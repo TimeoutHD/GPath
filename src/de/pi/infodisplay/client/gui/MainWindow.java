@@ -1,20 +1,32 @@
 package de.pi.infodisplay.client.gui;
 
+import java.awt.Color;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.swing.ImageIcon;
 import javax.swing.JDialog;
-import javax.swing.JFrame;
-import javax.swing.JMenuBar;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
+import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
 
 import de.pi.infodisplay.client.Client;
 import de.pi.infodisplay.shared.packets.PacketClientOutInfoUpdate;
 
-import java.awt.TextArea;
-
 public class MainWindow {
 
+	private static final String filePrefix = "";
 	private Client parent;
-	private JFrame frmInformationdisplay;
+	private JDialog frmInformationdisplay;
+	
+	private JTabbedPane tabbackup;
+	private static List<Information> infos = new ArrayList<>();
+
+
 
 	/**
 	 * Create the application.
@@ -27,48 +39,115 @@ public class MainWindow {
 
 	/**
 	 * Initialize the contents of the frame.
+	 *
+	 * @wbp.parser.entryPoint
 	 */
 	private void initialize() {
-		frmInformationdisplay = new JFrame();
-		frmInformationdisplay.setTitle("InformationDisplay");
-		frmInformationdisplay.setBounds(100, 100, 678, 717);
-		frmInformationdisplay.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		
-		JMenuBar menuBar = new JMenuBar();
-		frmInformationdisplay.setJMenuBar(menuBar);
-		
-		JMenu mnDatei = new JMenu("Datei");
-		menuBar.add(mnDatei);
-		
-		JMenuItem mntmVerbinden = new JMenuItem("Verbinden...");
-		mntmVerbinden.addActionListener(action -> {
-				ConnectDialog dialog = new ConnectDialog(parent);
-				dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-				dialog.setVisible(true);
-		});
-		mnDatei.add(mntmVerbinden);
-		
-		JMenuItem mntmDatenstandAktualisieren = new JMenuItem("Datenstand aktualisieren");
-		mnDatei.add(mntmDatenstandAktualisieren);
+        // Erzeugung eines neuen Dialoges
+        frmInformationdisplay = new JDialog();
+        frmInformationdisplay.setTitle("JPanel Beispiel");
+        frmInformationdisplay.setSize(450,750);
+ 
+        // Hier erzeugen wir unsere JPanels
+        JPanel panelRot = new JPanel();
+        JPanel panelBlue = new JPanel();
+        JPanel panelGreen = new JPanel();
+        JPanel panelYellow = new JPanel();
+        JPanel panelPink = new JPanel();
+        JPanel panelBlack = new JPanel();
+ 
+      
+		// Hier setzen wir die Hintergrundfarben für die JPanels
+        panelRot.setBackground(Color.RED);
+        panelBlue.setBackground(Color.BLUE);
+        panelGreen.setBackground(Color.GREEN);
+        panelYellow.setBackground(Color.YELLOW);
+        panelPink.setBackground(Color.PINK);
+        panelBlack.setBackground(Color.BLACK);
+ 
+        // Erzeugung eines JTabbedPane-Objektes
+        JTabbedPane tabpane = new JTabbedPane
+            (JTabbedPane.TOP,JTabbedPane.SCROLL_TAB_LAYOUT );
+ 
+        // Hier werden die JPanels als Registerkarten hinzugefügt
+        showInfos(tabpane);
+ 
+        tabbackup = tabpane;
+        // JTabbedPane wird unserem Dialog hinzugefügt
+        frmInformationdisplay.getContentPane().add(tabpane);
+        
+        JMenuBar menuBar = new JMenuBar();
+        frmInformationdisplay.setJMenuBar(menuBar);
+        
+        JMenu mnNewMenu = new JMenu("Optionen");
+        menuBar.add(mnNewMenu);
+        
+        JMenuItem mntmMitServerVerbinden = new JMenuItem("Mit Server verbinden...");
+        mntmMitServerVerbinden.addActionListener(action -> {
+        	ConnectDialog dialog = new ConnectDialog(parent);
+        	dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+        	dialog.setVisible(true);
+        });
+        mnNewMenu.add(mntmMitServerVerbinden);
+        
+        JMenuItem mntmDatenstandAktualisieren = new JMenuItem("Datenstand aktualisieren");
+        mnNewMenu.add(mntmDatenstandAktualisieren);
 		mntmDatenstandAktualisieren.addActionListener(action -> {
-				PacketClientOutInfoUpdate update = new PacketClientOutInfoUpdate();
-				parent.getNettyClient().sendPacket(update);
+			PacketClientOutInfoUpdate update = new PacketClientOutInfoUpdate();
+			parent.getNettyClient().sendPacket(update);
 		});
 		
 		JMenuItem mntmBeenden = new JMenuItem("Beenden");
-		mnDatei.add(mntmBeenden);
+		mnNewMenu.add(mntmBeenden);
 		
 		JMenu mnBearbeiten = new JMenu("Bearbeiten");
 		menuBar.add(mnBearbeiten);
 		
 		JMenuItem mntmEinstellungen = new JMenuItem("Einstellungen");
 		mnBearbeiten.add(mntmEinstellungen);
-		
-		frmInformationdisplay.getContentPane().setLayout(null);
-		
-		TextArea infoBoard = new TextArea();
-		infoBoard.setBounds(0, 0, 662, 658);
-		frmInformationdisplay.getContentPane().add(infoBoard);
+        
+      
+             
+        // Wir lassen unseren Dialog anzeigen
+        frmInformationdisplay.setVisible(true);
+        
+        boolean running = true;
+        
+        Runnable runnable = new Runnable() {
+			
+			@Override
+			public void run() {
+				while(running) {
+					try {
+						Thread.sleep(2 * 1000);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+					
+					tabpane.setSelectedIndex((tabpane.getSelectedIndex() +1) % tabpane.getTabCount());
+					
+				}
+			}
+        };
+		Thread thread = new Thread(runnable);
+		thread.start();
 	}
-
+	
+	private void showInfos(JTabbedPane tabpane) {
+		tabpane.removeAll();
+		for(Information i : infos) {
+			tabpane.addTab(i.getTitle(), new JLabel(new ImageIcon(new File(filePrefix, i.getFilePath()).getAbsolutePath())));
+		}
+	}
+	
+	
+	public void addInfo(Information info) {
+		infos.add(info);
+		showInfos(tabbackup);
+	}
+	
+	public void removeInfo(Information info) {
+		infos.remove(info);
+		showInfos(tabbackup);
+	}
 }
