@@ -17,22 +17,6 @@ public class MainWindow {
 	private JFrame frmInformationdisplay;
 
 	/**
-	 * Launch the application.
-	 */
-//	public static void main(String[] args) {
-//		EventQueue.invokeLater(new Runnable() {
-//			public void run() {
-//				try {
-//					MainWindow window = new MainWindow();
-//					window.frmInformationdisplay.setVisible(true);
-//				} catch (Exception e) {
-//					e.printStackTrace();
-//				}
-//			}
-//		});
-//	}
-
-	/**
 	 * Create the application.
 	 */
 	public MainWindow(Client parent) {

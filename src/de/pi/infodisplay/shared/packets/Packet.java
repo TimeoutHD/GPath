@@ -65,13 +65,37 @@ public abstract class Packet {
 	 * {@link Packet#encodeString(ByteBuf, String)}. Dabei wird zunächst die Länge des ByteStamps gelesen 
 	 * und der daraus gezogene ByteArray zu einem String nach UTF-8 Kodierung decodiert.
 	 * 
-	 * @param source Dieses Argument repräsendtiert den zu lesenen ByteArray mit der richtigen Lesestelle
+	 * @param source Dieses Argument repräsentiert den zu lesenen ByteArray mit der richtigen Lesestelle
 	 * @return Den decodierten String nach UTF-8 Kodierung
 	 */
 	public static String decodeString(ByteBuf source) {
 		// Lese ByteArray mit passender Länge aus.
-		byte[] byteSet = source.readBytes(source.readInt()).array();
+		byte[] byteSet = decodeByteArray(source);
 		// Decodieren des Byte-Arrays zu einem String
 		return new String(byteSet, StandardCharsets.UTF_8);
+	}
+	
+	/**
+	 * Decodiert den ByteArray, der sich an der aktuellen Readerstelle im ByteBuf nach dem Encodierungsverfahren von
+	 * {@link Packet#encodeByteArray(ByteBuf, byte[])}. Dabei wird zunächst die Länge des ByteStamps gelesen
+	 * und der daraus gezogenene ByteArray zurückgegeben
+	 * @param source Dieses Argument repräsentiert den zu lesenen ByteArray mit der richtigen Lesestelle
+	 * @return Den decodierten ByteArray
+	 */
+	public static byte[] decodeByteArray(ByteBuf source) {
+		// Lese ByteArray mit passender Länge aus und gibt die zurück
+		return source.readBytes(source.readInt()).array();
+	}
+	
+	/**
+	 * Encodiert einen ByteArray in den ByteBuf. Dabei wird zunächst die Länge dey ByteArrays als Int in den ByteBuf geschrieben und danach der ByteArray selbst.
+	 * Schlussendlich wird der geschriebene ByteBuf zurückgegeben
+	 * @param source der zu schreibene ByteBuf
+	 * @param data der ByteArray
+	 */
+	public static ByteBuf encodeByteArray(ByteBuf source, byte[] data) {
+		source.writeInt(data.length);
+		source.writeBytes(data);
+		return source;
 	}
 }

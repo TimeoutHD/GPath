@@ -180,6 +180,22 @@ public class MySQL {
 			return new Tuple(index, columnNames, values);
 		}
 		
+		public Column getColumn(String name) {
+			if(name != null) {
+				for(int i = 0; i < columns.length; i++) {
+					if(name.equalsIgnoreCase(columns[i].getName()))return columns[i];
+				}
+				throw new IllegalArgumentException("Cannot find the column with name " + name);
+			} else throw new IllegalArgumentException("name cannot be null");
+		}
+		
+		public Column getColumn(int index) {
+			int length = columns.length;
+			if(index < length) {
+				return columns[index];
+			} else throw new IndexOutOfBoundsException("index must be lower than length");
+		}
+		
 		/**
 		 * Gibt zurück, ob eine Relation leer ist
 		 * @return Ob die Relation leer ist als Boolean
@@ -223,6 +239,10 @@ public class MySQL {
 		
 		public void addValue(String element) {
 			values.add(element);
+		}
+		
+		public List<String> getValues() {
+			return new ArrayList<>(values);
 		}
 	}
 	

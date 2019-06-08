@@ -5,12 +5,12 @@ import java.util.logging.Level;
 
 import de.pi.infodisplay.Main;
 import de.pi.infodisplay.server.handler.ClientPool;
-import de.pi.infodisplay.server.handler.InformationUploadHandler;
+import de.pi.infodisplay.server.handler.FileHandler;
 import de.pi.infodisplay.server.security.ClientUser;
-import de.pi.infodisplay.shared.handler.FileUploadHandler;
 import de.pi.infodisplay.shared.packets.Packet;
 import de.pi.infodisplay.shared.security.Operator;
 import de.timeout.libs.MySQL;
+
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -23,8 +23,6 @@ import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.codec.http.HttpRequestDecoder;
-import io.netty.handler.codec.http.HttpRequestEncoder;
 
 
 /**
@@ -65,10 +63,8 @@ public class Server implements Operator {
 	private ChannelFuture serverChannel;
 	
 	private ClientPool clientManager;
-	
-	private FileUploadHandler fileUploadManager;
-	
-	private InformationUploadHandler informationManager;
+		
+	private FileHandler informationManager;
 	
 	/**
 	 * Das ist das Field für die benutzte MySQL-Datenbank, wo der Server die benötigten Informationen abspeichert.
@@ -78,13 +74,13 @@ public class Server implements Operator {
 	 */
 	private static final MySQL mysql = new MySQL("localhost", 3306, "informationdisplay");
 	
-//	static {
-//		try {
-//			mysql.connect("pi", "piA");
-//		} catch (SQLException e) {
-//			Main.LOG.log(Level.SEVERE, "Could not connect to MySQL-Database", e);
-//		}
-//	}
+	static {
+		try {
+			mysql.connect("pi", "piA");
+		} catch (SQLException e) {
+			Main.LOG.log(Level.SEVERE, "Could not connect to MySQL-Database", e);
+		}
+	}
 	
 	/**
 	 * Erstellt einen NettyServer, der den angegebenen Port besetzt.
@@ -100,8 +96,7 @@ public class Server implements Operator {
 			// Neue Datenbanken sehen.
 			initializeDatabases();
 			clientManager = new ClientPool(serverChannel);
-			fileUploadManager = new FileUploadHandler();
-			informationManager = new InformationUploadHandler(this);
+			informationManager = new FileHandler(this);
 			serverChannel = new ServerBootstrap()
 				.group(bossGroup, workerGroup)
 				.channel(EPOLL ? EpollServerSocketChannel.class : NioServerSocketChannel.class)
@@ -116,9 +111,6 @@ public class Server implements Operator {
 								user.getPacketHandler().getDecoder(),
 								user.getPacketHandler().getEncoder(),
 								clientManager,
-								new HttpRequestDecoder(),
-								new HttpRequestEncoder(),
-								fileUploadManager,
 								informationManager);
 						Main.LOG.log(Level.INFO, "Connect -> " + channel.remoteAddress().getHostName() + ":" +
 								channel.remoteAddress().getPort());
@@ -160,13 +152,14 @@ public class Server implements Operator {
 		return clientManager;
 	}
 	
-	public InformationUploadHandler getInformationUploadManager() {
+	public FileHandler getInformationUploadManager() {
 		return informationManager;
 	}
 	
 	private void initializeDatabases() throws SQLException {
 		if(mysql.isConnected()) {
-			mysql.executeVoidStatement("CREATE TABLE IF NOT EXISTS Information(id INT(4), creatorID VARCHAR(36), path TEXT, PRIMARY KEY(id), FOREIGN KEY (creatorID) REFERENCES User(uuid)");
+			mysql.executeVoidStatement("CREATE TABLE IF NOT EXISTS Information(id INT(4) NOT NULL AUTO_INCREMENT,"
+					+ " creatorID VARCHAR(36), title TEXT, path TEXT, PRIMARY KEY(id), FOREIGN KEY (creatorID) REFERENCES User(uuid)");
 			mysql.executeVoidStatement("CREATE TABLE IF NOT EXISTS User(uuid VARCHAR(36), name VARCHAR(100), password TEXT, admin TINYINT(1), PRIMARY KEY (uuid))");
 		}
 	}
