@@ -1,5 +1,6 @@
 package de.pi.infodisplay.server.handler;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -9,33 +10,37 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
 import de.pi.infodisplay.Main;
+import de.pi.infodisplay.server.Server;
 import de.pi.infodisplay.server.security.ClientUser;
 import de.pi.infodisplay.shared.packets.PacketClientOutAuthorizeUser;
 import de.pi.infodisplay.shared.packets.PacketServerOutAuthorizeUser;
 import de.pi.infodisplay.shared.security.AuthentificationKey;
 import de.pi.infodisplay.shared.security.User;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelHandlerAdapter;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.socket.SocketChannel;
 
-@Sharable
-public class ClientPool extends ChannelHandlerAdapter {
+public class ClientPool {
 
 	private static final List<ClientUser> clientConnections = new LinkedList<>();
 	private static final Map<User, List<AuthentificationKey>> usedKeys = new ConcurrentHashMap<>(Integer.MAX_VALUE);
 	
+	private Server parent;
 	private ChannelFuture serverChannel;
 		
-	public ClientPool(ChannelFuture future) {
+	public ClientPool(Server parent, ChannelFuture future) {
 		this.serverChannel = future;
+		this.parent = parent;
 	}
 	
 	public ClientUser connect(SocketChannel channel) {
-		ClientUser user = new ClientUser(channel, null, null);
-		clientConnections.add(user);
-		return user;
+		return connect(channel, null);
+	}
+	
+	public ClientUser connect(SocketChannel channel, User user) {
+		ClientUser cUser = new ClientUser(channel, parent, user, null);
+		clientConnections.add(cUser);
+		return cUser;
 	}
 	
 	public void authorize(SocketChannel channel, User loggedUser, AuthentificationKey key) {
@@ -51,15 +56,16 @@ public class ClientPool extends ChannelHandlerAdapter {
 		});
 	}
 	
-	@Override
-	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+	public void channelRead(ChannelHandlerContext ctx, Object msg) throws SQLException {
 		if(msg instanceof PacketClientOutAuthorizeUser) {
 			PacketClientOutAuthorizeUser packet = (PacketClientOutAuthorizeUser) msg;
 			User user = User.getFromDataBaseByName(packet.getUsername());
-			PacketServerOutAuthorizeUser authorizeOut;
-			authorizeOut = new PacketServerOutAuthorizeUser(user.getUniqueId(), user.compare(packet.getPassword()));
-			
-			ctx.channel().writeAndFlush(authorizeOut, ctx.voidPromise());
+			synchronized (user) {
+				PacketServerOutAuthorizeUser authorizeOut = new PacketServerOutAuthorizeUser(user.getUniqueId(), user.compare(packet.getPassword()));
+				
+				ctx.channel().writeAndFlush(authorizeOut, ctx.voidPromise());
+			}
+
 		}
 	}
 	

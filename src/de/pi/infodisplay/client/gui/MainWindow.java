@@ -1,12 +1,13 @@
 package de.pi.infodisplay.client.gui;
 
-import java.awt.Color;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 
 import javax.swing.ImageIcon;
 import javax.swing.JDialog;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -14,20 +15,20 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 
+import de.pi.infodisplay.Main;
 import de.pi.infodisplay.client.Client;
+import de.pi.infodisplay.client.Information;
 import de.pi.infodisplay.shared.packets.PacketClientOutInfoUpdate;
 
 public class MainWindow {
-
-	private static final String filePrefix = "";
-	private Client parent;
-	private JDialog frmInformationdisplay;
 	
-	private JTabbedPane tabbackup;
-	private static List<Information> infos = new ArrayList<>();
+	private final List<JPanel> panels = new ArrayList<JPanel>();
 
-
-
+	private Client parent;
+	private JFrame frmInformationdisplay;
+	
+	private ProgressWindow progress;
+	
 	/**
 	 * Create the application.
 	 */
@@ -44,35 +45,18 @@ public class MainWindow {
 	 */
 	private void initialize() {
         // Erzeugung eines neuen Dialoges
-        frmInformationdisplay = new JDialog();
-        frmInformationdisplay.setTitle("JPanel Beispiel");
+        frmInformationdisplay = new JFrame();
+        frmInformationdisplay.setTitle("InformationDisplay");
         frmInformationdisplay.setSize(450,750);
  
-        // Hier erzeugen wir unsere JPanels
-        JPanel panelRot = new JPanel();
-        JPanel panelBlue = new JPanel();
-        JPanel panelGreen = new JPanel();
-        JPanel panelYellow = new JPanel();
-        JPanel panelPink = new JPanel();
-        JPanel panelBlack = new JPanel();
- 
-      
-		// Hier setzen wir die Hintergrundfarben für die JPanels
-        panelRot.setBackground(Color.RED);
-        panelBlue.setBackground(Color.BLUE);
-        panelGreen.setBackground(Color.GREEN);
-        panelYellow.setBackground(Color.YELLOW);
-        panelPink.setBackground(Color.PINK);
-        panelBlack.setBackground(Color.BLACK);
  
         // Erzeugung eines JTabbedPane-Objektes
         JTabbedPane tabpane = new JTabbedPane
             (JTabbedPane.TOP,JTabbedPane.SCROLL_TAB_LAYOUT );
- 
-        // Hier werden die JPanels als Registerkarten hinzugefügt
-        showInfos(tabpane);
- 
-        tabbackup = tabpane;
+        
+        // TODO: Panels ins TabbedPane hinzufügen.
+        
+        
         // JTabbedPane wird unserem Dialog hinzugefügt
         frmInformationdisplay.getContentPane().add(tabpane);
         
@@ -98,6 +82,18 @@ public class MainWindow {
 		});
 		
 		JMenuItem mntmBeenden = new JMenuItem("Beenden");
+		mntmBeenden.addActionListener(action -> {
+			parent.getNettyClient().disconnect();
+			System.exit(0);
+		});
+		
+		JMenuItem mntmNeueInformationHinzufgen = new JMenuItem("Neue Information hinzufügen");
+		mntmNeueInformationHinzufgen.addActionListener(action -> {
+			InformationAddDialog dialog = new InformationAddDialog(parent);
+        	dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+			dialog.setVisible(true);
+		});
+		mnNewMenu.add(mntmNeueInformationHinzufgen);
 		mnNewMenu.add(mntmBeenden);
 		
 		JMenu mnBearbeiten = new JMenu("Bearbeiten");
@@ -113,41 +109,39 @@ public class MainWindow {
         
         boolean running = true;
         
-        Runnable runnable = new Runnable() {
-			
-			@Override
-			public void run() {
+        Runnable runnable = () -> {
+
 				while(running) {
 					try {
-						Thread.sleep(2 * 1000);
+						Thread.sleep(2L * 1000L);
 					} catch (InterruptedException e) {
-						e.printStackTrace();
+						Main.LOG.log(Level.WARNING, "Cannot sleep thread for 2 seconds", e);
+						Thread.currentThread().interrupt();
 					}
-					
-					tabpane.setSelectedIndex((tabpane.getSelectedIndex() +1) % tabpane.getTabCount());
-					
+						
+					if(tabpane.getTabCount() > 0)
+						tabpane.setSelectedIndex((tabpane.getSelectedIndex() +1) % tabpane.getTabCount());
+						
 				}
-			}
         };
 		Thread thread = new Thread(runnable);
 		thread.start();
 	}
 	
-	private void showInfos(JTabbedPane tabpane) {
+	public void showInfos(JTabbedPane tabpane) {
 		tabpane.removeAll();
-		for(Information i : infos) {
-			tabpane.addTab(i.getTitle(), new JLabel(new ImageIcon(new File(filePrefix, i.getFilePath()).getAbsolutePath())));
+		for(Information i : parent.getNettyClient().getInformationManager().getInformations()) {
+			tabpane.addTab(i.getTitle(), new JLabel(new ImageIcon(i.getInfoFile().getAbsolutePath())));
 		}
 	}
 	
-	
-	public void addInfo(Information info) {
-		infos.add(info);
-		showInfos(tabbackup);
+	public void startProgressWindow(String title, int absoluteDataCount) {
+		if(progress != null) progress.exit();
+		progress = new ProgressWindow(title, absoluteDataCount);
+		new Thread(progress).start();
 	}
 	
-	public void removeInfo(Information info) {
-		infos.remove(info);
-		showInfos(tabbackup);
+	public void addInfo(String title, File file) {
+		// TODO: Neuen Panel erstellen, mit Daten füttern und in die Liste hauen
 	}
 }

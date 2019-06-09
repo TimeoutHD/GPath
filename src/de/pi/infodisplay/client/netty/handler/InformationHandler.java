@@ -11,6 +11,7 @@ import de.pi.infodisplay.client.Information;
 import de.pi.infodisplay.shared.packets.PacketServerOutAddInformation;
 import de.pi.infodisplay.shared.packets.PacketServerOutInfoUpdate;
 import de.pi.infodisplay.shared.packets.PacketServerOutInformation;
+
 import io.netty.channel.ChannelHandlerAdapter;
 import io.netty.channel.ChannelHandlerContext;
 
@@ -60,5 +61,9 @@ public class InformationHandler extends ChannelHandlerAdapter {
 
 	public List<Information> getInformations() {
 		return infos != null ? new ArrayList<>(infos) : new ArrayList<>();
+	}
+	
+	public Client getParent() {
+		return parent;
 	}
 }

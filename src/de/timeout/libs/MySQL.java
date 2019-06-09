@@ -91,7 +91,7 @@ public class MySQL {
 	 * @throws IllegalStateException Wenn die Verbindung geschlossen oder nicht nutzbar ist, quasi wenn {@link MySQL#isConnected()} false zurückgibt.
 	 */
 	public boolean executeVoidStatement(String statement, String... variables) throws SQLException {
-		if(!isConnected()) {
+		if(isConnected()) {
 			return convertStatement(statement, variables).execute();
 		} else throw new IllegalStateException("Connection is closed. Please connect to a MySQL-Database before using any statements");
 	}
@@ -108,7 +108,7 @@ public class MySQL {
 	 * @throws IllegalStateException Wenn die Verbindung geschlossen oder nicht nutzbar ist, quasi wenn {@link MySQL#isConnected()} false zurückgibt.
 	 */
 	public Table executeStatement(String statement, String... variables) throws SQLException {
-		if(!isConnected()) {
+		if(isConnected()) {
 			return new Table(convertStatement(statement, variables).executeQuery());
 		} else throw new IllegalStateException("Connection is closed. Please connect to a MySQL-Database before using any statements");
 	}
@@ -121,28 +121,28 @@ public class MySQL {
 	 */
 	public static class Table {
 		
-		private final List<Tuple> tuples = new ArrayList<>();
+		private final List<Row> tuples = new ArrayList<>();
 		
 		private Column[] columns;
 		
 		public Table(ResultSet rs) throws SQLException {
 			// Columnanzahl definieren.
 			columns = new Column[rs.getMetaData().getColumnCount()];
-			for(int i = 0; i < columns.length; i++) {
+			for(int i = 1; i <= columns.length; i++) {
 				// Columns initialisieren
-				columns[i] = new Column(rs.getMetaData().getColumnName(i));
+				columns[i-1] = new Column(rs.getMetaData().getColumnName(i));
 			}
 			
 			// Werte in Tuplen und Columns speichern
 			int index = 0;
 			while(rs.next()) {
 				String[] cache = new String[columns.length];
-				for(int i = 0; i < columns.length; i++) {
-					cache[i] = rs.getString(i);
-					columns[i].addValue(cache[i]);
+				for(int i = 1; i <= columns.length; i++) {
+					cache[i - 1] = rs.getString(i);
+					columns[i - 1].addValue(cache[i - 1]);
 				}
 				
-				tuples.add(new Tuple(index, cache));
+				tuples.add(new Row(index, cache));
 				index++;
 			}
 		}
@@ -167,7 +167,7 @@ public class MySQL {
 		 * @param index der Index
 		 * @return Die komplette Spalte
 		 */
-		public Tuple getTuple(int index) {
+		public Row getTuple(int index) {
 			int length = columns.length;
 			String[] values = new String[length];
 			String[] columnNames = new String[length];
@@ -177,7 +177,7 @@ public class MySQL {
 				values[i] = columns[i].getValue(index);
 			}
 			
-			return new Tuple(index, columnNames, values);
+			return new Row(index, columnNames, values);
 		}
 		
 		public Column getColumn(String name) {
@@ -251,13 +251,13 @@ public class MySQL {
 	 * @author timeout
 	 *
 	 */
-	public static class Tuple {
+	public static class Row {
 		
 		private int index;
 		private String[] columnNames;
 		private String[] values;
 		
-		public Tuple(int i, String[] columnNames, String... elements) {
+		public Row(int i, String[] columnNames, String... elements) {
 			this.index = i;
 			this.values = elements.clone();
 			this.columnNames = columnNames.clone();

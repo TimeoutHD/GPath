@@ -39,7 +39,7 @@ public class User {
 	 */
 	public static User getFromDataBaseByName(String name) {
 		try {
-			Table table = Server.getMySQL().executeStatement("SELECT * FROM users WHERE name = ?", name);
+			Table table = Server.getMySQL().executeStatement("SELECT * FROM User WHERE name = ?", name);
 			return new User(UUID.fromString(table.getValue("uuid", 0)),
 					table.getValue("name", 0));
 		} catch (SQLException e) {
@@ -50,7 +50,7 @@ public class User {
 	
 	public static User getFromDatabaseByUUID(UUID uuid) {
 		try {
-			Table table = Server.getMySQL().executeStatement("SELECT * from users WHERE uuid = ?", uuid.toString());
+			Table table = Server.getMySQL().executeStatement("SELECT * from User WHERE uuid = ?", uuid.toString());
 			return new User(uuid, table.getValue("name", 0));
 		} catch (SQLException e) {
 			Main.LOG.log(Level.SEVERE, SQL_ERROR, e);
@@ -75,16 +75,16 @@ public class User {
 	
 	public static void changePassword(User user, String newPassword, ClientUser operator) throws SQLException {
 		if(operator.isAuthorized() && operator.getLoggedUser().isAdmin() && user.exists()) {
-			Server.getMySQL().executeVoidStatement("UPDATE users SET password = ? WHERE uuid = ?", User.encode(newPassword), user.getUniqueId().toString());
+			Server.getMySQL().executeVoidStatement("UPDATE User SET password = ? WHERE uuid = ?", User.encode(newPassword), user.getUniqueId().toString());
 		}
 	}
 	
 	public void saveInDatabase() {
 			try {
-				if(!exists()) Server.getMySQL().executeVoidStatement("INSERT INTO users(id, name, password, admin) VALUES(?,?,?)", id.toString(), name, null, String.valueOf(0));
-				else Server.getMySQL().executeVoidStatement("UPDATE name = ?, FROM users WHERE uuid = ?", name, id.toString());
+				if(!exists()) Server.getMySQL().executeVoidStatement("INSERT INTO User(id, name, password, admin) VALUES(?,?,?)", id.toString(), name, null, String.valueOf(0));
+				else Server.getMySQL().executeVoidStatement("UPDATE name = ?, FROM User WHERE uuid = ?", name, id.toString());
 			} catch (SQLException e) {
-				Main.LOG.log(Level.SEVERE, "Cannot result SQL-Statement", e);
+				Main.LOG.log(Level.SEVERE, SQL_ERROR, e);
 			}
 	}
 		
@@ -94,7 +94,7 @@ public class User {
 	 * @throws SQLException
 	 */
 	public boolean exists() throws SQLException {
-		Table table = Server.getMySQL().executeStatement("SELECT uuid FROM users WHERE uuid = ?", id.toString());
+		Table table = Server.getMySQL().executeStatement("SELECT uuid FROM User WHERE uuid = ?", id.toString());
 		return !table.isEmpty();
 	}
 	
@@ -105,7 +105,7 @@ public class User {
 	 * @throws SQLException Wenn ein unerwarteter MySQL-Fehler passiert
 	 */
 	public boolean compare(String password) throws SQLException {
-		return Server.getMySQL().executeStatement("SELECT password FROM users WHERE id = ?", id.toString()).getValue("password", 0).equals(password);
+		return Server.getMySQL().executeStatement("SELECT password FROM User WHERE uuid = ?", id.toString()).getValue("password", 0).equals(password);
 	}
 	
 	/**
@@ -117,7 +117,7 @@ public class User {
 	 */
 	public boolean setPassword(String oldpw, String newpw) throws SQLException {
 		if(compare(User.encode(oldpw))) {
-			return Server.getMySQL().executeVoidStatement("UPDATE users SET password = ? WHERE id = ?", User.encode(newpw), id.toString());
+			return Server.getMySQL().executeVoidStatement("UPDATE User SET password = ? WHERE id = ?", User.encode(newpw), id.toString());
 		}
 		return false;
 	}

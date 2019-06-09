@@ -12,7 +12,7 @@ public class PacketServerOutAuthorizeUser extends Packet {
 	private boolean loginResult;
 	private AuthentificationKey securityKey;
 
-	private PacketServerOutAuthorizeUser() {
+	public PacketServerOutAuthorizeUser() {
 		super(101);
 	}
 	

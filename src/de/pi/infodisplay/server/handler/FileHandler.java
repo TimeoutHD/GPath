@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.file.Files;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,12 +17,9 @@ import de.pi.infodisplay.shared.packets.PacketServerOutInformation;
 import de.pi.infodisplay.shared.security.User;
 import de.timeout.libs.MySQL.Table;
 
-import io.netty.channel.ChannelHandler.Sharable;
-import io.netty.channel.ChannelHandlerAdapter;
 import io.netty.channel.ChannelHandlerContext;
 
-@Sharable
-public class FileHandler extends ChannelHandlerAdapter {
+public class FileHandler {
 	
 	private static final File tempFolder = new File(System.getProperty("user.home"), ".infodisplay");
 	
@@ -31,8 +29,7 @@ public class FileHandler extends ChannelHandlerAdapter {
 		this.parent = parent;
 	}
 
-	@Override
-	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+	public void channelRead(ChannelHandlerContext ctx, Object msg) throws IOException, SQLException {
 		if(msg instanceof PacketClientOutInfoUpdate) {
 			// Lese Informationen aus der MySQL
 			Table table = Server.getMySQL().executeStatement("SELECT path, title FROM Information");

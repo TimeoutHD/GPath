@@ -8,22 +8,48 @@ import javax.swing.JLabel;
 import javax.swing.SwingConstants;
 import java.awt.Font;
 
-public class ProgressWindow extends JFrame {
+public class ProgressWindow extends JFrame implements Runnable {
 
 	private static final long serialVersionUID = 5760632333934168050L;
-
+	private volatile boolean exit;
+	
 	private JPanel contentPane;
 	
 	private JProgressBar progressBar;
 	private JLabel titleLabel;
 	
 	private String title;
+	private int absoluteDataCount;
 
 	/**
 	 * Create the frame.
 	 */
-	public ProgressWindow(String title) {
+	public ProgressWindow(String title, int absoluteDataCount) {
+		this.absoluteDataCount = absoluteDataCount;
 		this.title = title;
+	}
+
+	public JProgressBar getProgressBar() {
+		return progressBar;
+	}
+
+	@Override
+	public String getTitle() {
+		return title;
+	}
+
+	@Override
+	public void setTitle(String title) {
+		this.title = title;
+		titleLabel.setText(title);
+	}
+	
+	public int getAbsoluteDataCount() {
+		return absoluteDataCount;
+	}
+
+	@Override
+	public void run() {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 450, 300);
 		contentPane = new JPanel();
@@ -42,18 +68,13 @@ public class ProgressWindow extends JFrame {
 		contentPane.add(titleLabel);
 	}
 
-	public JProgressBar getProgressBar() {
-		return progressBar;
+	public void exit() {
+		this.setVisible(false);
+		this.dispose();
+		exit = true;
 	}
-
-	@Override
-	public String getTitle() {
-		return title;
-	}
-
-	@Override
-	public void setTitle(String title) {
-		this.title = title;
-		titleLabel.setText(title);
+	
+	public boolean isRunning() {
+		return !exit;
 	}
 }

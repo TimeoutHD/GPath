@@ -1,11 +1,17 @@
 package de.pi.infodisplay.client.netty.handler;
 
+import java.util.List;
+
 import de.pi.infodisplay.client.netty.NettyClient;
-import de.pi.infodisplay.server.security.ClientUser;
 import de.pi.infodisplay.shared.handler.PacketDecoder;
 import de.pi.infodisplay.shared.packets.Packet;
+import de.pi.infodisplay.shared.packets.PacketServerOutAddInformation;
 import de.pi.infodisplay.shared.packets.PacketServerOutAuthorizeUser;
 import de.pi.infodisplay.shared.packets.PacketServerOutInfo;
+import de.pi.infodisplay.shared.packets.PacketServerOutInfoUpdate;
+import de.pi.infodisplay.shared.packets.PacketServerOutInformation;
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandlerContext;
 
 /**
  * Diese Klasse ist der spezielle Packet-Decoder für den Client.
@@ -16,10 +22,6 @@ import de.pi.infodisplay.shared.packets.PacketServerOutInfo;
 public class PacketClientDecoder extends PacketDecoder {
 
 	public PacketClientDecoder(NettyClient operator) {
-		super(operator);
-	}
-	
-	public PacketClientDecoder(ClientUser operator) {
 		super(operator);
 	}
 
@@ -35,7 +37,20 @@ public class PacketClientDecoder extends PacketDecoder {
 		switch(id) {
 		case 0: return PacketServerOutInfo.class;
 		case 101: return PacketServerOutAuthorizeUser.class;
+		case 201: return PacketServerOutInfoUpdate.class;
+		case 300: return PacketServerOutAddInformation.class;
+		case 400: return PacketServerOutInformation.class;
 		default: return null;
 		}
 	}
+
+	@Override
+	protected void decode(ChannelHandlerContext ctx, ByteBuf input, List<Object> objects) throws Exception {
+		Packet packet = getSendPacket(input);
+		if(packet instanceof PacketServerOutAuthorizeUser) {
+			
+		}
+	}
+	
+	
 }

@@ -13,12 +13,16 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
+import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 
 import de.pi.infodisplay.Main;
 import de.pi.infodisplay.client.Client;
+import de.pi.infodisplay.client.netty.handler.ClientPacketHandler;
+import de.pi.infodisplay.client.netty.handler.InformationHandler;
 import de.pi.infodisplay.shared.handler.PacketHandler;
 import de.pi.infodisplay.shared.packets.Packet;
+import de.pi.infodisplay.shared.security.AuthentificationKey;
 import de.pi.infodisplay.shared.security.Operator;
 
 /**
@@ -41,6 +45,15 @@ public class NettyClient implements Runnable, Operator {
 	 * zu installieren, nicht ändert
 	 */
 	private static final boolean EPOLL = Epoll.isAvailable();
+	
+	/**
+	 * Dieses Field ist ein Countdown der für die Synchronisation mit der GUI beim Autorisieren des Benutzers notwendig ist.
+	 * Dieser ist standardgemäß auf 1 Sekunde gestellt und wird runtergestellt, nachdem die Verbindung zum Server hergestellt wurde.
+	 * 
+	 * Hier wird das Attribut direkt initialisiert, da es final ist.
+	 */
+	private final CountDownLatch latch = new CountDownLatch(1);
+
 	
 	/**
 	 * Das ist das Field für den Port des Servers. 
@@ -74,6 +87,11 @@ public class NettyClient implements Runnable, Operator {
 	 */
 	private PacketHandler handler;
 	
+	
+	private InformationHandler informationManager;
+	
+	private AuthentificationKey securityKey;
+	
 	private Client parent;
 	
 	/**
@@ -90,8 +108,9 @@ public class NettyClient implements Runnable, Operator {
 	}
 	
 	public void run() {
-		this.handler = new PacketHandler((Operator) this);
+		this.handler = new ClientPacketHandler(this);
 		Bootstrap trap = new Bootstrap();
+		informationManager = new InformationHandler(parent);
 		EventLoopGroup workerGroup = EPOLL ? new EpollEventLoopGroup() : new NioEventLoopGroup();
 		// EventLoopGroup definieren.
 		try {
@@ -107,13 +126,14 @@ public class NettyClient implements Runnable, Operator {
 						@Override
 						protected void initChannel(SocketChannel channel) throws Exception {
 							channel.pipeline()
-								.addLast(handler.getDecoder(), handler.getEncoder());
+								.addLast(handler.getDecoder(), handler.getEncoder(), informationManager);
 							Main.LOG.log(Level.INFO, "Connected to Server -> " + host);
 						}
 						
 			});
 			Main.LOG.log(Level.INFO, "Server sucessfully started");
 			channel = trap.connect(host, port).sync().channel().closeFuture();
+			latch.countDown();
 			channel.syncUninterruptibly();
 		} catch (Exception e) {
 			Main.LOG.log(Level.SEVERE, "Failed to connect", e);
@@ -167,5 +187,21 @@ public class NettyClient implements Runnable, Operator {
 	@Override
 	public ChannelFuture apply(Packet packet, Channel channel) {
 		return channel.writeAndFlush(packet).syncUninterruptibly();
+	}
+	
+	public InformationHandler getInformationManager() {
+		return informationManager;
+	}
+	
+	public CountDownLatch getCountDownLatch() {
+		return latch;
+	}
+	
+	public void setSecurityKey(AuthentificationKey key) {
+		securityKey = key;
+	}
+	
+	public AuthentificationKey getSecurityKey() {
+		return securityKey;
 	}
 }

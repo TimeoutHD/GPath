@@ -1,5 +1,6 @@
 package de.pi.infodisplay.server.security;
 
+import de.pi.infodisplay.server.Server;
 import de.pi.infodisplay.shared.handler.PacketHandler;
 import de.pi.infodisplay.shared.security.AuthentificationKey;
 import de.pi.infodisplay.shared.packets.Packet;
@@ -41,11 +42,11 @@ public class ClientUser implements Operator {
 	 */
 	private PacketHandler packetHandler;
 	
-	public ClientUser(SocketChannel channel, User user, AuthentificationKey key) {
+	public ClientUser(SocketChannel channel, Server server, User user, AuthentificationKey key) {
 		this.channel = channel;
 		this.loggedUser = user;
 		this.secutityKey = key;
-		this.packetHandler = new ClientPacketHandler(this);
+		this.packetHandler = new ClientPacketHandler(server, this);
 	}
 
 	public SocketChannel getChannel() {

@@ -95,7 +95,7 @@ public class Server implements Operator {
 				EventLoopGroup workerGroup = EPOLL ? new EpollEventLoopGroup() : new NioEventLoopGroup()) {	
 			// Neue Datenbanken sehen.
 			initializeDatabases();
-			clientManager = new ClientPool(serverChannel);
+			clientManager = new ClientPool(this, serverChannel);
 			informationManager = new FileHandler(this);
 			serverChannel = new ServerBootstrap()
 				.group(bossGroup, workerGroup)
@@ -108,10 +108,8 @@ public class Server implements Operator {
 						
 						// Handler initialisieren
 						channel.pipeline().addLast(
-								user.getPacketHandler().getDecoder(),
 								user.getPacketHandler().getEncoder(),
-								clientManager,
-								informationManager);
+								user.getPacketHandler().getDecoder());
 						Main.LOG.log(Level.INFO, "Connect -> " + channel.remoteAddress().getHostName() + ":" +
 								channel.remoteAddress().getPort());
 					}				
@@ -158,9 +156,8 @@ public class Server implements Operator {
 	
 	private void initializeDatabases() throws SQLException {
 		if(mysql.isConnected()) {
-			mysql.executeVoidStatement("CREATE TABLE IF NOT EXISTS Information(id INT(4) NOT NULL AUTO_INCREMENT,"
-					+ " creatorID VARCHAR(36), title TEXT, path TEXT, PRIMARY KEY(id), FOREIGN KEY (creatorID) REFERENCES User(uuid)");
 			mysql.executeVoidStatement("CREATE TABLE IF NOT EXISTS User(uuid VARCHAR(36), name VARCHAR(100), password TEXT, admin TINYINT(1), PRIMARY KEY (uuid))");
+			mysql.executeVoidStatement("CREATE TABLE IF NOT EXISTS Information(id INT(4) NOT NULL AUTO_INCREMENT, creatorID VARCHAR(36), title TEXT, path TEXT, PRIMARY KEY(id), FOREIGN KEY (creatorID) REFERENCES User(uuid))");
 		}
 	}
 

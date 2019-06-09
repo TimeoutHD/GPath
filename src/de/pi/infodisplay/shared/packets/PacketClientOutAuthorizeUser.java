@@ -11,7 +11,7 @@ public class PacketClientOutAuthorizeUser extends Packet {
 	private String username;
 	private String password;
 	
-	private PacketClientOutAuthorizeUser() {
+	public PacketClientOutAuthorizeUser() {
 		super(101);
 	}
 	

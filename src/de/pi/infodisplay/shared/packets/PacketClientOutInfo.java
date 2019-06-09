@@ -11,7 +11,7 @@ public class PacketClientOutInfo extends Packet {
 	
 	private String msg;
 	
-	private PacketClientOutInfo() {
+	public PacketClientOutInfo() {
 		super(0);
 	}
 	

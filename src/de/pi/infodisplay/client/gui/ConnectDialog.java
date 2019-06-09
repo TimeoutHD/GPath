@@ -10,9 +10,11 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.JLabel;
 
 import java.awt.Font;
+import java.util.logging.Level;
 
 import javax.swing.SwingConstants;
 
+import de.pi.infodisplay.Main;
 import de.pi.infodisplay.client.Client;
 import de.pi.infodisplay.shared.packets.PacketClientOutAuthorizeUser;
 
@@ -99,13 +101,22 @@ public class ConnectDialog extends JDialog {
 			String portString = portField.getText();
 			if(portString.matches("\\d+")) {
 				int port = Integer.parseInt(portString);
-							
+						
+
 				if(parent.connectToServer(host, port)) {
+					// Warte, bis die Verbindung aufgebaut ist
+					try {
+						parent.getNettyClient().getCountDownLatch().await();
+					} catch (InterruptedException e) {
+						Main.LOG.log(Level.SEVERE, "Interrupted", e);
+						Thread.currentThread().interrupt();
+					}
 					String username = usernameField.getText();
 					String password = String.valueOf(passwordField.getPassword());
 					if(username != null && !username.isEmpty() && password != null && !password.isEmpty()) {
 						PacketClientOutAuthorizeUser authorize = new PacketClientOutAuthorizeUser(usernameField.getText(), String.valueOf(passwordField.getPassword()));
 						parent.getNettyClient().sendPacket(authorize);
+						System.out.println("Packet gesendet");
 					}
 				}
 			}
