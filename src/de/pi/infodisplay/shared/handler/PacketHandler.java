@@ -7,7 +7,7 @@ package de.pi.infodisplay.shared.handler;
  * @author PI A
  *
  */
-public abstract interface PacketHandler {
+public interface PacketHandler {
 	
 	/**
 	 * Diese Methode gibt die Referenz des Decoders für dieses Objekt zur�ck.

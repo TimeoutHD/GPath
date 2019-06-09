@@ -1,6 +1,5 @@
 package de.pi.infodisplay.client.gui;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -26,9 +25,7 @@ public class MainWindow {
 
 	private Client parent;
 	private JFrame frmInformationdisplay;
-	
-	private ProgressWindow progress;
-	
+		
 	/**
 	 * Create the application.
 	 */
@@ -133,11 +130,5 @@ public class MainWindow {
 		for(Information i : parent.getNettyClient().getInformationManager().getInformations()) {
 			tabpane.addTab(i.getTitle(), new JLabel(new ImageIcon(i.getInfoFile().getAbsolutePath())));
 		}
-	}
-	
-	public void startProgressWindow(String title, int absoluteDataCount) {
-		if(progress != null) progress.exit();
-		progress = new ProgressWindow(title, absoluteDataCount);
-		new Thread(progress).start();
 	}
 }
