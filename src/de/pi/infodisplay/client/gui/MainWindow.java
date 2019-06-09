@@ -13,6 +13,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.JTabbedPane;
 
 import de.pi.infodisplay.Main;
@@ -23,6 +24,8 @@ import de.pi.infodisplay.shared.packets.PacketClientOutInfoUpdate;
 public class MainWindow {
 	
 	private final List<Information> informations = new ArrayList<>();
+	
+	private ProgressWindow downloadProgress;
 
 	private Client parent;
 	private JFrame frmInformationdisplay;
@@ -144,5 +147,22 @@ public class MainWindow {
 			panel.add(new JLabel(new ImageIcon(info.getInfoFile().getAbsolutePath())));
 			tabpane.addTab(info.getTitle(), panel);
 		});
+	}
+	
+	public void addProgress() {
+		JProgressBar bar = downloadProgress.getProgressBar();
+		bar.setValue(100 * downloadProgress.getActualDataCount() / downloadProgress.getAbsoluteDataCount());
+	}
+	
+	public void createProgressWindow(int maxdata) {
+		closeProgressWindow();
+		downloadProgress = new ProgressWindow("Lade Infos herunter", maxdata);
+		downloadProgress.setVisible(true);
+	}
+	
+	public void closeProgressWindow() {
+		if(downloadProgress != null) {
+			downloadProgress.exit();
+		}
 	}
 }

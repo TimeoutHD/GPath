@@ -39,7 +39,6 @@ public class InformationHandler extends ChannelHandlerAdapter {
 			infos.add(new Information(packet.getTitle(), packet.writeFileData(getInformationFile())));
 		} else if(msg instanceof PacketServerOutAddInformation) {
 			boolean success = ((PacketServerOutAddInformation)msg).success();
-			// TODO: Lade-GUI schließen.
 		}
 	}
 	

@@ -11,6 +11,7 @@ import de.pi.infodisplay.shared.packets.PacketServerOutAuthorizeUser;
 import de.pi.infodisplay.shared.packets.PacketServerOutInfo;
 import de.pi.infodisplay.shared.packets.PacketServerOutInfoUpdate;
 import de.pi.infodisplay.shared.packets.PacketServerOutInformation;
+import de.pi.infodisplay.shared.packets.PacketServerOutInformationResult;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 
@@ -21,7 +22,7 @@ import io.netty.channel.ChannelHandlerContext;
  *
  */
 public class PacketClientDecoder extends PacketDecoder {
-
+	
 	public PacketClientDecoder(Client operator) {
 		super(operator.getNettyClient());
 	}
@@ -41,6 +42,7 @@ public class PacketClientDecoder extends PacketDecoder {
 		case 201: return PacketServerOutInfoUpdate.class;
 		case 300: return PacketServerOutAddInformation.class;
 		case 400: return PacketServerOutInformation.class;
+		case 401: return PacketServerOutInformationResult.class;
 		default: return null;
 		}
 	}
@@ -48,10 +50,25 @@ public class PacketClientDecoder extends PacketDecoder {
 	@Override
 	protected void decode(ChannelHandlerContext ctx, ByteBuf input, List<Object> objects) throws Exception {
 		Packet packet = getSendPacket(input);
+		NettyClient op = (NettyClient) operator;
 		if(packet instanceof PacketServerOutAuthorizeUser) {
-			
+			PacketServerOutAuthorizeUser authorize = (PacketServerOutAuthorizeUser) packet;
+			op.setSecurityKey(authorize.getSecurityKey());
 		} else if(packet instanceof PacketServerOutInfoUpdate) {
-			
+			PacketServerOutInfoUpdate update = (PacketServerOutInfoUpdate) packet;
+			op.getParent().getMainWindowGUI().createProgressWindow(update.getInformationLength());
+		} else if(packet instanceof PacketServerOutInformation) {
+			// Fortschritt hinzufügen
+			op.getParent().getMainWindowGUI().addProgress();
+			// Dateien lesen.
+			op.getInformationManager().channelRead(ctx, packet);
+		} else if(packet instanceof PacketServerOutInformationResult) {
+			// Fülle GUI mit Informationen aus dem Handler
+			op.getParent().getMainWindowGUI().addInformations(op.getInformationManager().getInformations());
+			// Aktuallisiere Panels
+			op.getParent().getMainWindowGUI().addPanelsToList();
+			// Schließe Ladeebene
+			op.getParent().getMainWindowGUI().closeProgressWindow();
 		}
 	}
 	

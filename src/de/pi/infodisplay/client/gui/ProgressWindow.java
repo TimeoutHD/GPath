@@ -19,6 +19,7 @@ public class ProgressWindow extends JFrame implements Runnable {
 	private JLabel titleLabel;
 	
 	private String title;
+	private int actualDataCount;
 	private int absoluteDataCount;
 
 	/**
@@ -76,5 +77,13 @@ public class ProgressWindow extends JFrame implements Runnable {
 	
 	public boolean isRunning() {
 		return !exit;
+	}
+	
+	public void increaseDataCount() {
+		if(actualDataCount < absoluteDataCount) actualDataCount++;
+	}
+	
+	public int getActualDataCount() {
+		return actualDataCount;
 	}
 }
