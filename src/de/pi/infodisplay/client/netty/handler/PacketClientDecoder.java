@@ -2,6 +2,7 @@ package de.pi.infodisplay.client.netty.handler;
 
 import java.util.List;
 
+import de.pi.infodisplay.client.Client;
 import de.pi.infodisplay.client.netty.NettyClient;
 import de.pi.infodisplay.shared.handler.PacketDecoder;
 import de.pi.infodisplay.shared.packets.Packet;
@@ -21,8 +22,8 @@ import io.netty.channel.ChannelHandlerContext;
  */
 public class PacketClientDecoder extends PacketDecoder {
 
-	public PacketClientDecoder(NettyClient operator) {
-		super(operator);
+	public PacketClientDecoder(Client operator) {
+		super(operator.getNettyClient());
 	}
 
 	/**
@@ -48,6 +49,8 @@ public class PacketClientDecoder extends PacketDecoder {
 	protected void decode(ChannelHandlerContext ctx, ByteBuf input, List<Object> objects) throws Exception {
 		Packet packet = getSendPacket(input);
 		if(packet instanceof PacketServerOutAuthorizeUser) {
+			
+		} else if(packet instanceof PacketServerOutInfoUpdate) {
 			
 		}
 	}

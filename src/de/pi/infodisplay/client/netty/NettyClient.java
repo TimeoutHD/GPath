@@ -108,7 +108,7 @@ public class NettyClient implements Runnable, Operator {
 	}
 	
 	public void run() {
-		this.handler = new ClientPacketHandler(this);
+		this.handler = new ClientPacketHandler(parent);
 		Bootstrap trap = new Bootstrap();
 		informationManager = new InformationHandler(parent);
 		EventLoopGroup workerGroup = EPOLL ? new EpollEventLoopGroup() : new NioEventLoopGroup();

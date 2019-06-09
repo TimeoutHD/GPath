@@ -1,6 +1,7 @@
 package de.pi.infodisplay.client.gui;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -21,10 +22,11 @@ import de.pi.infodisplay.shared.packets.PacketClientOutInfoUpdate;
 
 public class MainWindow {
 	
-	private final List<JPanel> panels = new ArrayList<JPanel>();
+	private final List<Information> informations = new ArrayList<>();
 
 	private Client parent;
 	private JFrame frmInformationdisplay;
+	private JTabbedPane tabpane;
 		
 	/**
 	 * Create the application.
@@ -48,8 +50,7 @@ public class MainWindow {
  
  
         // Erzeugung eines JTabbedPane-Objektes
-        JTabbedPane tabpane = new JTabbedPane
-            (JTabbedPane.TOP,JTabbedPane.SCROLL_TAB_LAYOUT );
+        tabpane = new JTabbedPane(JTabbedPane.TOP,JTabbedPane.SCROLL_TAB_LAYOUT );
         
         // TODO: Panels ins TabbedPane hinzufügen.
         
@@ -130,5 +131,18 @@ public class MainWindow {
 		for(Information i : parent.getNettyClient().getInformationManager().getInformations()) {
 			tabpane.addTab(i.getTitle(), new JLabel(new ImageIcon(i.getInfoFile().getAbsolutePath())));
 		}
+	}
+	
+	public void addInformations(Collection<Information> informations) {
+		informations.clear();
+		this.informations.addAll(informations);
+	}
+	
+	public void addPanelsToList() {
+		informations.forEach(info -> {
+			JPanel panel = new JPanel();
+			panel.add(new JLabel(new ImageIcon(info.getInfoFile().getAbsolutePath())));
+			tabpane.addTab(info.getTitle(), panel);
+		});
 	}
 }
