@@ -140,8 +140,4 @@ public class MainWindow {
 		progress = new ProgressWindow(title, absoluteDataCount);
 		new Thread(progress).start();
 	}
-	
-	public void addInfo(String title, File file) {
-		// TODO: Neuen Panel erstellen, mit Daten füttern und in die Liste hauen
-	}
 }
