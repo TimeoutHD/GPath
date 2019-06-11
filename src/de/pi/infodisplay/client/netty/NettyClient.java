@@ -1,11 +1,13 @@
 package de.pi.infodisplay.client.netty;
 
 import io.netty.bootstrap.Bootstrap;
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.FixedRecvByteBufAllocator;
 import io.netty.channel.epoll.Epoll;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollSocketChannel;
@@ -22,6 +24,7 @@ import de.pi.infodisplay.client.netty.handler.ClientPacketHandler;
 import de.pi.infodisplay.client.netty.handler.InformationHandler;
 import de.pi.infodisplay.shared.handler.PacketHandler;
 import de.pi.infodisplay.shared.packets.Packet;
+import de.pi.infodisplay.shared.packets.PacketClientOutDisconnect;
 import de.pi.infodisplay.shared.security.AuthentificationKey;
 import de.pi.infodisplay.shared.security.Operator;
 
@@ -125,8 +128,12 @@ public class NettyClient implements Runnable, Operator {
 
 						@Override
 						protected void initChannel(SocketChannel channel) throws Exception {
+							//Bytebuf vergrößern auf 10MB
+							channel.config().setRecvByteBufAllocator(new FixedRecvByteBufAllocator(100*1024*1024));
+							
+							// Decoder und Encoder einbinden
 							channel.pipeline()
-								.addLast(handler.getDecoder(), handler.getEncoder(), informationManager);
+								.addLast(handler.getDecoder(), handler.getEncoder());
 							Main.LOG.log(Level.INFO, "Connected to Server -> " + host);
 						}
 						
@@ -172,7 +179,7 @@ public class NettyClient implements Runnable, Operator {
 		return handler;
 	}
 	
-	public ChannelFuture sendPacket(Packet packet) {
+	public synchronized ChannelFuture sendPacket(Packet packet) {
 		return this.apply(packet, channel.channel());
 	}
 	
@@ -181,12 +188,22 @@ public class NettyClient implements Runnable, Operator {
 	}
 	
 	public void disconnect() {
-		this.channel.channel().close(this.channel.channel().voidPromise());
+		// Paket erstellen und senden
+		PacketClientOutDisconnect disconnect = new PacketClientOutDisconnect();
+		ChannelFuture channelFuture = sendPacket(disconnect);
+		// Auf Abschluss des Sendens warten und Verbindung schließen
+		synchronized (channelFuture) {
+			channelFuture.channel().close();
+		}
 	}
 
 	@Override
 	public ChannelFuture apply(Packet packet, Channel channel) {
 		return channel.writeAndFlush(packet).syncUninterruptibly();
+	}
+	
+	public ChannelFuture sendByteBuf(ByteBuf buf) {
+		return this.channel.channel().writeAndFlush(buf).syncUninterruptibly();
 	}
 	
 	public InformationHandler getInformationManager() {

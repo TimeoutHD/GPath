@@ -22,7 +22,7 @@ import de.pi.infodisplay.shared.packets.PacketClientOutInfoUpdate;
  *
  */
 public class PacketServerDecoder extends PacketDecoder {
-	
+		
 	private Server server;
 
 	public PacketServerDecoder(Server server, ClientUser operator) {
@@ -50,11 +50,14 @@ public class PacketServerDecoder extends PacketDecoder {
 	}
 
 	@Override
-	protected void decode(ChannelHandlerContext ctx, ByteBuf input, List<Object> objects) throws Exception {
+	protected synchronized void decode(ChannelHandlerContext ctx, ByteBuf input, List<Object> objects) throws Exception {
+		System.out.println(input.capacity());
 		Packet packet = getSendPacket(input);
-		if(packet instanceof PacketClientOutAuthorizeUser) {
+		System.out.println("Packet bestimmt: " + packet.getClass().getName());
+		if(packet instanceof PacketClientOutAuthorizeUser || packet instanceof PacketClientOutDisconnect) {
 			server.getClientManager().channelRead(ctx, packet);
 		} else if(packet instanceof PacketClientOutAddInformation || packet instanceof PacketClientOutInfoUpdate) {
+			System.out.println("Packet erhalten, starte Handler");
 			server.getInformationUploadManager().channelRead(ctx, packet);
 		}
 	}

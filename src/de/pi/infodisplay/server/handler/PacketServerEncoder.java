@@ -7,7 +7,6 @@ import de.pi.infodisplay.shared.packets.PacketServerOutAuthorizeUser;
 import de.pi.infodisplay.shared.packets.PacketServerOutInfo;
 import de.pi.infodisplay.shared.packets.PacketServerOutInfoUpdate;
 import de.pi.infodisplay.shared.packets.PacketServerOutInformation;
-import de.pi.infodisplay.shared.packets.PacketServerOutInformationResult;
 
 /**
  * Diese Klasse ist der spezielle Encoder des Servers.
@@ -32,7 +31,6 @@ public class PacketServerEncoder extends PacketEncoder {
 		case 201: return PacketServerOutInfoUpdate.class;
 		case 300: return PacketServerOutAddInformation.class;
 		case 400: return PacketServerOutInformation.class;
-		case 401: return PacketServerOutInformationResult.class;
 		default: return null;
 		}
 	}

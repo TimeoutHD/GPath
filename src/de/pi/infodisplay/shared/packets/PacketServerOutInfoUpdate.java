@@ -8,8 +8,12 @@ public class PacketServerOutInfoUpdate extends Packet {
 	
 	private int length;
 	
-	public PacketServerOutInfoUpdate(int length) {
+	public PacketServerOutInfoUpdate() {
 		super(201);
+	}
+	
+	public PacketServerOutInfoUpdate(int length) {
+		this();
 		this.length = length;
 	}
 

@@ -1,7 +1,14 @@
 package de.pi.infodisplay.shared.packets;
 
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
@@ -44,7 +51,7 @@ public abstract class Packet {
 	 * @return der fertiggeschriebene ByteBuf
 	 */
 	public static ByteBuf encodeString(ByteBuf source, String string) {
-		int count = 0;
+		long count = 0;
 		// Berechne Bytelänge des Strings (Länge des Chars biszu 3 Bytes)
 		for(int i = 0; i < string.length(); i++) {
 			char c = string.charAt(i);
@@ -52,9 +59,10 @@ public abstract class Packet {
 			else if(c < 0x800) count += 2;
 			else count += 3;
 		}
-		
+		// ByteBuf-Größe anpassen
+		source.capacity((int) (source.readerIndex() + 8 + count));
 		// Schreibe Bytelänge vor den String
-		source.writeInt(count);
+		source.writeLong(count);
 		// Schreib den String in UTF-8 Kodierung in den ByteBuf
 		ByteBufUtil.writeUtf8(source, string);
 		return source;
@@ -83,8 +91,9 @@ public abstract class Packet {
 	 * @return Den decodierten ByteArray
 	 */
 	public static byte[] decodeByteArray(ByteBuf source) {
+		int index = (int) source.readLong();
 		// Lese ByteArray mit passender Länge aus und gibt die zurück
-		return source.readBytes(source.readInt()).array();
+		return source.readBytes(index).array();
 	}
 	
 	/**
@@ -94,8 +103,44 @@ public abstract class Packet {
 	 * @param data der ByteArray
 	 */
 	public static ByteBuf encodeByteArray(ByteBuf source, byte[] data) {
-		source.writeInt(data.length);
+		// ByteBuf-Größe anpassen:
+		source.capacity(source.readerIndex() + 8 + data.length);
+		// Länge des ByteArrays schreiben
+		source.writeLong(data.length);
+		// ByteArray Schreiben
 		source.writeBytes(data);
 		return source;
+	}
+	
+	public static File zip(File file, File zipFile) throws IOException {
+		FileOutputStream out = new FileOutputStream(zipFile.getAbsolutePath());
+		try(ZipOutputStream zipOut = new ZipOutputStream(out); FileInputStream fileIn = new FileInputStream(file)) {
+			ZipEntry entry = new ZipEntry(file.getName());
+			zipOut.putNextEntry(entry);
+			
+			byte[] bytes = new byte[1024];
+			int length;
+			while((length = fileIn.read(bytes)) >= 0) zipOut.write(bytes, 0, length);
+			
+			zipOut.closeEntry();
+		}
+		
+		return zipFile;
+	}
+	
+	public static File unzip(File zipFile, File goal) throws IOException {
+		try(ZipInputStream zipIn = new ZipInputStream(new FileInputStream(zipFile))) {
+			ZipEntry entry = zipIn.getNextEntry();
+			while(entry != null) {
+				try (BufferedOutputStream bOut = new BufferedOutputStream(new FileOutputStream(goal))) {
+					byte[] bytesIn = new byte[4096];
+					int read = 0;
+					while((read = zipIn.read(bytesIn)) != -1) {
+						bOut.write(bytesIn, 0, read);
+					}
+				}
+			}
+		}
+		return goal;
 	}
 }

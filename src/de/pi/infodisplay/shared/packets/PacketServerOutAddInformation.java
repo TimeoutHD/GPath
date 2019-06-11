@@ -6,28 +6,28 @@ import io.netty.buffer.ByteBuf;
 
 public class PacketServerOutAddInformation extends Packet {
 	
-	private boolean result;
-
-	public PacketServerOutAddInformation() {
+	private boolean success;
+	
+	public PacketServerOutAddInformation()  {
 		super(300);
 	}
 	
-	public PacketServerOutAddInformation(boolean result) {
-		super(300);
-		this.result = result;
+	public PacketServerOutAddInformation(boolean success) {
+		this();
+		this.success = success;
 	}
 
 	@Override
 	public void read(ByteBuf byteBuf) throws IOException {
-		this.result = byteBuf.readBoolean();
+		/* LEER, da keine Attribute */
 	}
 
 	@Override
 	public void write(ByteBuf byteBuf) throws IOException {
-		byteBuf.writeBoolean(result);
+		/* LEER, da keine Attribute */
 	}
-
+	
 	public boolean success() {
-		return result;
+		return success;
 	}
 }

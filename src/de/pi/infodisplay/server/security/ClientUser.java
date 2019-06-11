@@ -1,5 +1,8 @@
 package de.pi.infodisplay.server.security;
 
+import java.util.logging.Level;
+
+import de.pi.infodisplay.Main;
 import de.pi.infodisplay.server.Server;
 import de.pi.infodisplay.shared.handler.PacketHandler;
 import de.pi.infodisplay.shared.security.AuthentificationKey;
@@ -69,24 +72,48 @@ public class ClientUser implements Operator {
 		return packetHandler;
 	}
 	
+	/**
+	 * Diese Methode schließt die Nettyverbindung zwischen dem dazugehörigen Client und diesem Server.
+	 */
 	public void disconnect() {
-		channel.close(channel.voidPromise());
+		channel.close();
 	}
 	
+	/**
+	 * Diese Methode setzt den Benutzer und den Sicherheitsschlüssel zwischen Client und Server.
+	 * <p>ACHTUNG<!p> Diese Methode funktioniert nur einmal. Bei einem weiteren Versuch wird die Verbindung getrennt, um Hackangriffe zu vermeiden.
+	 * @param user der Benutzer des Clients
+	 * @param securityKey der dazugehörige Client
+	 */
 	public void authorize(User user, AuthentificationKey securityKey) {
+		// Wenn er nicht autorisiert ist
 		if(!isAuthorized()) {
+			// Setze Werte
 			this.loggedUser = user;
 			this.secutityKey = securityKey;
 		} else {
+			// SICHERHEITSRISIKO: Trenne Verbindung und 
 			disconnect();
-			throw new IllegalArgumentException("User is already authorized. WARNING: This connection is disconnected due secutity reasons");
+			Main.LOG.log(Level.WARNING, "Dieser Benutzer war schon autorisiert. WARNuNG: Diese Verbindung wird aus Sicherheitsgründen getrennt");
 		}
 	}
 
+	/**
+	 * Diese Methode sendet ein Packet über einen Channel
+	 * @param packet Das zu sendene Packet
+	 * @param channel Der Channel, über den das Packet versendet werden soll
+	 * @return der Channel, der arbeitet. Für Synchronisation nützlich
+	 */
 	public ChannelFuture sendPacket(Packet packet, Channel channel) {
 		return channel.writeAndFlush(packet, channel.voidPromise()).syncUninterruptibly();
 	}
 
+	/**
+	 * Diese Methode sendet ein Packet über einen Channel. Siehe {@link ClientUser#sendPacket(Packet, Channel)} für mehr Infos
+	 * @param packet Das zu sendene Packet
+	 * @param channel Der Channel, über den das Packet versendet werden soll
+	 * @return der Channel, der arbeitet. Für Synchronisation nützlich
+	 */
 	@Override
 	public ChannelFuture apply(Packet packet, Channel channel) {
 		return channel.writeAndFlush(packet, channel.voidPromise()).syncUninterruptibly();

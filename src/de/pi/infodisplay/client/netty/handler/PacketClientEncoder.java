@@ -34,5 +34,4 @@ public class PacketClientEncoder extends PacketEncoder {
 		default: return null;
 		}
 	}
-
 }
