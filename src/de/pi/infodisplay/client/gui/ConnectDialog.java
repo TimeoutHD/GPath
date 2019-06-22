@@ -116,7 +116,8 @@ public class ConnectDialog extends JDialog {
 					if(username != null && !username.isEmpty() && password != null && !password.isEmpty()) {
 						PacketClientOutAuthorizeUser authorize = new PacketClientOutAuthorizeUser(usernameField.getText(), String.valueOf(passwordField.getPassword()));
 						parent.getNettyClient().sendPacket(authorize);
-						System.out.println("Packet gesendet");
+						setVisible(false);
+						this.setEnabled(false);
 					}
 				}
 			}

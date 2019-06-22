@@ -17,6 +17,7 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.FixedRecvByteBufAllocator;
 import io.netty.channel.epoll.Epoll;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollServerSocketChannel;
@@ -106,6 +107,9 @@ public class Server implements Operator {
 					protected void initChannel(SocketChannel channel) throws Exception {
 						ClientUser user = clientManager.connect(channel);
 						
+						//Bytebuf vergrößern auf 10MB
+						channel.config().setRecvByteBufAllocator(new FixedRecvByteBufAllocator(100*1024*1024));
+						
 						// Handler initialisieren
 						channel.pipeline().addLast(
 								user.getPacketHandler().getEncoder(),
@@ -162,7 +166,7 @@ public class Server implements Operator {
 	}
 
 	@Override
-	public ChannelFuture apply(Packet packet, Channel channel) {
-		return channel.writeAndFlush(packet, channel.voidPromise()).syncUninterruptibly();
+	public synchronized ChannelFuture apply(Packet packet, Channel channel) {
+		return channel.writeAndFlush(packet).syncUninterruptibly();
 	}
 }

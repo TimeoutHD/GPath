@@ -2,6 +2,7 @@ package de.pi.infodisplay.client.netty.handler;
 
 import java.util.List;
 
+import de.pi.infodisplay.client.Client;
 import de.pi.infodisplay.client.netty.NettyClient;
 import de.pi.infodisplay.shared.handler.PacketDecoder;
 import de.pi.infodisplay.shared.packets.Packet;
@@ -10,6 +11,7 @@ import de.pi.infodisplay.shared.packets.PacketServerOutAuthorizeUser;
 import de.pi.infodisplay.shared.packets.PacketServerOutInfo;
 import de.pi.infodisplay.shared.packets.PacketServerOutInfoUpdate;
 import de.pi.infodisplay.shared.packets.PacketServerOutInformation;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 
@@ -20,9 +22,9 @@ import io.netty.channel.ChannelHandlerContext;
  *
  */
 public class PacketClientDecoder extends PacketDecoder {
-
-	public PacketClientDecoder(NettyClient operator) {
-		super(operator);
+	
+	public PacketClientDecoder(Client operator) {
+		super(operator.getNettyClient());
 	}
 
 	/**
@@ -47,8 +49,16 @@ public class PacketClientDecoder extends PacketDecoder {
 	@Override
 	protected void decode(ChannelHandlerContext ctx, ByteBuf input, List<Object> objects) throws Exception {
 		Packet packet = getSendPacket(input);
+		NettyClient op = (NettyClient) operator;
 		if(packet instanceof PacketServerOutAuthorizeUser) {
-			
+			PacketServerOutAuthorizeUser authorize = (PacketServerOutAuthorizeUser) packet;
+			op.setSecurityKey(authorize.getSecurityKey());
+		} else if(packet instanceof PacketServerOutInfoUpdate) {
+			PacketServerOutInfoUpdate update = (PacketServerOutInfoUpdate) packet;
+			op.getParent().getMainWindowGUI().createProgressWindow(update.getInformationLength());
+		} else if(packet instanceof PacketServerOutInformation) {
+			// Dateien lesen.
+			op.getInformationManager().channelRead(ctx, packet);
 		}
 	}
 	

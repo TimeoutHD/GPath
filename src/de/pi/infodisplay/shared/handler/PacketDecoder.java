@@ -33,9 +33,10 @@ public abstract class PacketDecoder extends ByteToMessageDecoder {
 			if(packetClass != null) {
 				Packet packet = (Packet) Reflections.getConstructor(packetClass).newInstance();
 				packet.read(input);
+				System.out.println("gelesen");
 				return packet;
 			}  throw new IllegalArgumentException("Packet-ID " + id + " is not in use");
-		}	
+		} 	
 		throw new IllegalArgumentException("Cannot read Bytebuf");
 	}
 

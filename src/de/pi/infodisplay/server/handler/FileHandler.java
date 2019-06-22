@@ -16,13 +16,16 @@ import de.pi.infodisplay.shared.packets.PacketServerOutInfoUpdate;
 import de.pi.infodisplay.shared.packets.PacketServerOutInformation;
 import de.pi.infodisplay.shared.security.User;
 import de.timeout.libs.MySQL.Table;
-
 import io.netty.channel.ChannelHandlerContext;
 
 public class FileHandler {
 	
 	private static final File tempFolder = new File(System.getProperty("user.home"), ".infodisplay");
 	
+	static {
+		tempFolder.mkdirs();
+	}
+		
 	private Server parent;
 	
 	public FileHandler(Server parent) {
@@ -34,21 +37,23 @@ public class FileHandler {
 			// Lese Informationen aus der MySQL
 			Table table = Server.getMySQL().executeStatement("SELECT path, title FROM Information");
 			
-			// Erstelle Listen mit Daten
-			final List<String> paths = table.getColumn("path").getValues();
-			final List<File> files = new ArrayList<File>();
-			
-			// Fülle files mit Dateien
-			paths.forEach(path -> files.add(new File(path)));
-			
-			// Erstelle ein Informationspaket und sende es an den Client zurück
-			PacketServerOutInfoUpdate updatePacket = new PacketServerOutInfoUpdate(paths.size());
-			this.parent.apply(updatePacket, ctx.channel());
-			
-			// Erstelle vereinzelte Packete mit den einzelnen Informationen und sende sie an den Client als Antwort
-			for(int i = 0; i < paths.size(); i++) {
-				File file = paths.get(i) != null ? new File(paths.get(i)) : null;
-				this.parent.apply(new PacketServerOutInformation(file, table.getValue("title", i)), ctx.channel());
+			synchronized (table) {
+				// Erstelle Listen mit Daten
+				final List<String> paths = table.getColumn("path").getValues();
+				final List<File> files = new ArrayList<File>();
+				
+				// Fülle files mit Dateien
+				paths.forEach(path -> files.add(new File(path)));
+				
+				// Erstelle ein Informationspaket und sende es an den Client zurück
+				PacketServerOutInfoUpdate updatePacket = new PacketServerOutInfoUpdate(paths.size());
+				this.parent.apply(updatePacket, ctx.channel());
+				
+				// Erstelle vereinzelte Packete mit den einzelnen Informationen und sende sie an den Client als Antwort
+				for(int i = 0; i < paths.size(); i++) {
+					File file = paths.get(i) != null ? new File(paths.get(i)) : null;
+					this.parent.apply(new PacketServerOutInformation(file, table.getValue("title", i)), ctx.channel());
+				}
 			}
 		} else if(msg instanceof PacketClientOutAddInformation) {
 			// Lese Packet aus
@@ -59,15 +64,20 @@ public class FileHandler {
 			
 			// Wenn der Benutzer autorisiert ist:
 			if(parent.getClientManager().isAuthorized(ip, creator)) {
-				File file = createNewFileInformation();
+				System.out.println("Ist autorisiert");
+				// Erstelle neue Datei
+				File actualFile = createNewFileInformation();
 				
 				// Resultat für Antwort
 				boolean success = false; 
 				
 				// Sobald alles sauber funktioniert hat
-				if(file != null) {
+				if(actualFile != null) {
+					// Schreiben von Daten in die File
+					inPacket.writeFileData(actualFile);
+					
 					// Füge Daten in die Datenbank ein
-					Server.getMySQL().executeStatement("INSERT INTO Information(creatorID, title, path) VALUES (?, ?, ?)", creator.getUniqueId().toString(), inPacket.getTitle(), file.getAbsolutePath());	
+					Server.getMySQL().executeVoidStatement("INSERT INTO Information(creatorID, title, path) VALUES (?, ?, ?)", creator.getUniqueId().toString(), inPacket.getTitle(), actualFile.getAbsolutePath());	
 					success = true;
 				}
 				
@@ -78,7 +88,7 @@ public class FileHandler {
 
 		}
 	}
-	
+
 	private File createNewFileInformation() throws IOException {
 		File folder = new File(tempFolder, "infos");
 		// Erstelle Ordner von InfoDisplay
@@ -101,8 +111,8 @@ public class FileHandler {
 					}
 				} else throw new IllegalStateException("Cannot create Information. Please delete Informations before creating a new one");
 			}
-			// Erstelle PNG file und gib diese zurück.
-			File file = new File(folder, "data.png");
+			// Erstelle JPG file und gib diese zurück.
+			File file = new File(folder, "data.jpg");
 			Files.createFile(file.toPath());
 			return file;
 	}

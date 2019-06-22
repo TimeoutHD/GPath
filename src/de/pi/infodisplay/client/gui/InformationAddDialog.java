@@ -5,6 +5,7 @@ import java.awt.FlowLayout;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
+import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
@@ -15,6 +16,7 @@ import de.pi.infodisplay.shared.packets.PacketClientOutAddInformation;
 import javax.swing.JLabel;
 import javax.swing.SwingConstants;
 import javax.swing.JTextField;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
@@ -70,7 +72,11 @@ public class InformationAddDialog extends JDialog {
 		
 		JButton fileChooserButton = new JButton("");
 		fileChooserButton.addActionListener(action -> {
-			new PNGFileChooser(this);	
+			JFrame frame = new JFrame();
+			
+			PNGFileChooser chooser = new PNGFileChooser(this);
+			chooser.showOpenDialog(frame);
+			chooser.setVisible(true);
 		});
 		fileChooserButton.setBounds(387, 115, 39, 25);
 		contentPanel.add(fileChooserButton);
@@ -84,8 +90,9 @@ public class InformationAddDialog extends JDialog {
 			try {
 				PacketClientOutAddInformation packet = new PacketClientOutAddInformation(titleField.getText(), new File(pathField.getText()));
 				parent.getNettyClient().sendPacket(packet);
+				dispose();
 			} catch (IOException e) {
-				Main.LOG.log(Level.SEVERE, "Cannot get Data from File", e);
+				Main.LOG.log(Level.SEVERE, "Packet kann nicht erstellt werden", e);
 			}
 		});
 		okButton.setActionCommand("OK");

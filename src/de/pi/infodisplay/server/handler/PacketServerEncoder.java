@@ -31,7 +31,6 @@ public class PacketServerEncoder extends PacketEncoder {
 		case 201: return PacketServerOutInfoUpdate.class;
 		case 300: return PacketServerOutAddInformation.class;
 		case 400: return PacketServerOutInformation.class;
-		
 		default: return null;
 		}
 	}

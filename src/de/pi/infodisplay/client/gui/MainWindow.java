@@ -1,6 +1,7 @@
 package de.pi.infodisplay.client.gui;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -18,13 +19,16 @@ import de.pi.infodisplay.Main;
 import de.pi.infodisplay.client.Client;
 import de.pi.infodisplay.client.Information;
 import de.pi.infodisplay.shared.packets.PacketClientOutInfoUpdate;
+import java.awt.BorderLayout;
+import java.awt.Color;
 
 public class MainWindow {
-	
-	private final List<JPanel> panels = new ArrayList<JPanel>();
+		
+	private ProgressWindow downloadProgress;
 
 	private Client parent;
 	private JFrame frmInformationdisplay;
+	private JTabbedPane tabbedPane;
 		
 	/**
 	 * Create the application.
@@ -45,17 +49,6 @@ public class MainWindow {
         frmInformationdisplay = new JFrame();
         frmInformationdisplay.setTitle("InformationDisplay");
         frmInformationdisplay.setSize(450,750);
- 
- 
-        // Erzeugung eines JTabbedPane-Objektes
-        JTabbedPane tabpane = new JTabbedPane
-            (JTabbedPane.TOP,JTabbedPane.SCROLL_TAB_LAYOUT );
-        
-        // TODO: Panels ins TabbedPane hinzufügen.
-        
-        
-        // JTabbedPane wird unserem Dialog hinzugefügt
-        frmInformationdisplay.getContentPane().add(tabpane);
         
         JMenuBar menuBar = new JMenuBar();
         frmInformationdisplay.setJMenuBar(menuBar);
@@ -98,7 +91,13 @@ public class MainWindow {
 		
 		JMenuItem mntmEinstellungen = new JMenuItem("Einstellungen");
 		mnBearbeiten.add(mntmEinstellungen);
+		
+		tabbedPane = new JTabbedPane(JTabbedPane.TOP, JTabbedPane.SCROLL_TAB_LAYOUT);
+		frmInformationdisplay.getContentPane().add(tabbedPane, BorderLayout.CENTER);
         
+		JPanel test = new JPanel();
+		test.setBackground(Color.CYAN);
+		tabbedPane.add("Test", test);
       
              
         // Wir lassen unseren Dialog anzeigen
@@ -116,8 +115,8 @@ public class MainWindow {
 						Thread.currentThread().interrupt();
 					}
 						
-					if(tabpane.getTabCount() > 0)
-						tabpane.setSelectedIndex((tabpane.getSelectedIndex() +1) % tabpane.getTabCount());
+					if(tabbedPane.getTabCount() > 0)
+						tabbedPane.setSelectedIndex((tabbedPane.getSelectedIndex() +1) % tabbedPane.getTabCount());
 						
 				}
         };
@@ -125,10 +124,36 @@ public class MainWindow {
 		thread.start();
 	}
 	
-	public void showInfos(JTabbedPane tabpane) {
-		tabpane.removeAll();
-		for(Information i : parent.getNettyClient().getInformationManager().getInformations()) {
-			tabpane.addTab(i.getTitle(), new JLabel(new ImageIcon(i.getInfoFile().getAbsolutePath())));
+	public void addPanelsToList() {
+		List<Information> infos = parent.getNettyClient().getInformationManager().getInformations();
+		System.out.println(infos.size());
+		infos.forEach(info -> {
+			System.out.println("Erstelle information");
+			JPanel panel = new JPanel();
+			panel.add(new JLabel(new ImageIcon(info.getInfoFile().getAbsolutePath())));
+			tabbedPane.addTab(info.getTitle(), panel);
+		});
+	}
+	
+	public synchronized void addProgress() {
+		downloadProgress.increateDataCount();
+		downloadProgress.setProgress(100 * downloadProgress.getActualDataCount() / downloadProgress.getAbsoluteDataCount());
+		if(downloadProgress.getActualDataCount() == downloadProgress.getAbsoluteDataCount()) {
+			System.out.println("Ist fertig");
+			closeProgressWindow();
+			addPanelsToList();
+		}
+	}
+	
+	public synchronized void createProgressWindow(int maxdata) {
+		closeProgressWindow();
+		downloadProgress = new ProgressWindow("Lade Infos herunter", maxdata);
+		downloadProgress.setVisible(true);
+	}
+	
+	public synchronized void closeProgressWindow() {
+		if(downloadProgress != null) {
+			downloadProgress.close();
 		}
 	}
 }

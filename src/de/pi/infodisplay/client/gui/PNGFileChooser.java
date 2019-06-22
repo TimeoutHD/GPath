@@ -8,15 +8,14 @@ public class PNGFileChooser extends JFileChooser {
 	private static final long serialVersionUID = -2335937386713979525L;
 	
 	public PNGFileChooser(InformationAddDialog parent) {
-		super();
+		super(System.getProperty("user.home"));
 		addActionListener(action -> {
 			parent.setPathField(this.getSelectedFile().getAbsolutePath());
 			setVisible(false);
 		});
-		FileNameExtensionFilter filter = new FileNameExtensionFilter("PNG-Bild", "png");
+		FileNameExtensionFilter filter = new FileNameExtensionFilter("JPEG-Bild", "jpg");
 		this.addChoosableFileFilter(filter);
 		this.setSize(450, 300);
-		this.setVisible(true);
 	}
 	
 }
