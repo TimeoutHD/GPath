@@ -7,7 +7,9 @@ import java.nio.file.Files;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 
+import de.pi.infodisplay.Main;
 import de.pi.infodisplay.server.Server;
 import de.pi.infodisplay.shared.packets.PacketClientOutAddInformation;
 import de.pi.infodisplay.shared.packets.PacketClientOutInfoUpdate;
@@ -65,21 +67,25 @@ public class FileHandler {
 			// Wenn der Benutzer autorisiert ist:
 			if(parent.getClientManager().isAuthorized(ip, creator)) {
 				System.out.println("Ist autorisiert");
-				// Erstelle neue Datei
-				File actualFile = createNewFileInformation();
+
 				
 				// Resultat für Antwort
 				boolean success = false; 
 				
-				// Sobald alles sauber funktioniert hat
-				if(actualFile != null) {
+				try {
+					// Erstelle neue Datei
+					File actualFile = createNewFileInformation();
+					
 					// Schreiben von Daten in die File
 					inPacket.writeFileData(actualFile);
-					
+						
 					// Füge Daten in die Datenbank ein
 					Server.getMySQL().executeVoidStatement("INSERT INTO Information(creatorID, title, path) VALUES (?, ?, ?)", creator.getUniqueId().toString(), inPacket.getTitle(), actualFile.getAbsolutePath());	
 					success = true;
+				} catch(IOException e) {
+					Main.LOG.log(Level.SEVERE, "Cannot create Data", e);
 				}
+
 				
 				// Erstelle AntwortPaket und sende sie an den Client
 				PacketServerOutAddInformation resultPacket = new PacketServerOutAddInformation(success);
