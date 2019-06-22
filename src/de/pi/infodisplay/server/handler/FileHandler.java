@@ -82,7 +82,8 @@ public class FileHandler {
 	private File createNewFileInformation() throws IOException {
 		File folder = new File(tempFolder, "infos");
 		// Erstelle Ordner von InfoDisplay
-		if(folder.mkdirs()) {
+		Files.createDirectory(folder.toPath());
+		
 			// Ordner überprüfen
 			for(int i = 0; i < Integer.MAX_VALUE; i++) {
 				// Wenn der im Valid-Bereich ist
@@ -104,7 +105,5 @@ public class FileHandler {
 			File file = new File(folder, "data.png");
 			Files.createFile(file.toPath());
 			return file;
-		} 
-		return null;
 	}
 }
